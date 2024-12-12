@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+# create foam file for Paraview
+touch case.foam
+
+
+surfaceMeshTriangulate kcs_bothHalves.stl
+
+
+#------------------------------------------------------------------------------

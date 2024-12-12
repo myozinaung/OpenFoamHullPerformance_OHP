@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+para {#include        "../ParametersMesh"}
+
+actions
+(
+    // for Box Shape Refinement
+    {
+        name    c1;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC1 $para/yminC1 $para/zminC1) ($para/xmaxC1 $para/ymaxC1 $para/zmaxC1);
+
+    }
+
+    {
+        name    c2;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC2 $para/yminC2 $para/zminC2) ($para/xmaxC2 $para/ymaxC2 $para/zmaxC2);
+    }
+
+    {
+        name    c3;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC3 $para/yminC3 $para/zminC3) ($para/xmaxC3 $para/ymaxC3 $para/zmaxC3);
+    }
+
+    {
+        name    c4;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC4 $para/yminC4 $para/zminC4) ($para/xmaxC4 $para/ymaxC4 $para/zmaxC4);
+    }
+
+    {
+        name    c5;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC5 $para/yminC5 $para/zminC5) ($para/xmaxC5 $para/ymaxC5 $para/zmaxC5);
+    }
+
+    {
+        name    c6;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC6 $para/yminC6 $para/zminC6) ($para/xmaxC6 $para/ymaxC6 $para/zmaxC6);
+    }
+);
+
+
+// ************************************************************************* //

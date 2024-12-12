@@ -1,0 +1,55 @@
+TODO
+- To handle compressed stl file
+- include variable directly, // e.g., value           #include        "hullBounds.zWL";
+- single combined log file for loop application
+- Add add initial Sinkage and Trim (need to update postprocess)
+
+
+- IGES surfaces to STL surface mesh --> GMSH
+- STL surface mesh to STL Manifold --> Blender
+- STL Manifold: clip and calculate mass properties --> Blender
+
+- SLOME, GMSH, Blender, MeshLab, MeshMixer, FreeCAD
+
+
+IGES Surface >> STL Surface >> STL Watertight Solid (Ready of OpenFOAM) >> Calculate Bounding Box (for Mesh) and Mass Properties (for Rigid Body Motions)
+
+STEP1: IGES to STL surface mesh
+- SLOME: IGES to STL surface mesh
+CMD >> C:\SALOME-9.12.0\W64\Python\python3.exe salomeIGSToSTLSurf.py
+
+STEP2: STL surface mesh to STL Manifold
+- Blender: STL surface to STL Manifold
+CMD >> python3 blenderMakeSolid.py hull_open.stl
+
+STEP3: STL Manifold: clip and calculate mass properties
+- Blender: clip and calculate mass properties (not need 3D Print Toolbox)
+CMD >> python3 blenderHullProperties.py 
+(Bounding Box for Mesh and Hull Properties for Rigid Body Motion)
+Outputs >> hullBounds.txt and hullMassInertiaCoG.txt
+
+
+Dependencies
+- Install python 3.11.* and bpy (blender python)
+
+
+
+INPUT (after preprocessing)
+Geometry and Operating Conditions
+- hull.stl (watertight)
+- draft
+- pre trim and sinkage (default 0)
+- Mass and CoG if known (if not, calculated using blender)
+- speed (model [m/s] or full [knot] with scale(sizes))
+
+Simulation Controls
+- Time, Time Step, Write Controls
+- Stopping Criteria
+
+Mesh Refinement Controls
+- Fineness
+- Regional Refinement
+- WallFunction or Not
+
+Rigid Body Motion & Dynamic Mesh
+- 

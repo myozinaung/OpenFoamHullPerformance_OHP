@@ -1,0 +1,46 @@
+//*********************** MOTION and DYNAMIC MESH (dynamicMeshDict) *********************** //
+// Get from Hydrostatics Analysis (Half Model), could vary with loading condition (draft, trim, heel)
+// mass            412.73;   // [kg]
+// Ixx             40;       // [kg.m^2] for Roll motion (not impoartant here)
+// Iyy             921;      // [kg.m^2] for Pitch motion
+// Izz             921;      // [kg.m^2] for Yaw motion (not important here)
+// centreOfMass    (2.929541 0 0.2); // [m] (x y z), (LCB 0 VCG)
+
+// W3 Hull
+mass            16.146;   // [kg]
+Ixx             0.4;       // [kg.m^2] for Roll motion (not impoartant here)
+Iyy             5;      // [kg.m^2] for Pitch motion
+Izz             5;      // [kg.m^2] for Yaw motion (not important here)
+centreOfMass    (0.589 0 0.156); // [m] (x y z), (LCB 0 VCG)
+
+// #include "hullMassInertiaCoG.txt"
+
+// Mesh Morphing Range for the moving body (meshes within the range will deform)
+// innerDistance   0.3; // should be relative to the size of model
+// outerDistance   1;
+innerDistance   0.02; // should be relative to the size of model
+outerDistance   0.6;
+meshDiffusivity inverseVolume (hull); // inverseDistance, inverseVolume, uniform, quadratic inverseDistance
+translationDamperCoeff  8596; // should be relative to the size of model
+rotationDamperCoeff     11586;
+
+//*********************** TURBULENCE MODEL and WALL FUNCTIONS *********************** //
+// TURBULENCE MODEL k-omega SST (initial and boundary values, "0" dir)
+nut         5e-07; // turbulent viscosity
+k           0.00015; // turbulent kinetic energy
+omega       2; // specific dissipation rate
+
+// Hull Surface Roughness (0/nut/nutkRoughWallFunction)
+sandGrainHeight          100e-6;     // Ks, Sand-grain roughness height (0 for smooth walls)
+roughnessConst           0.5;        // Cs, Roughness constant (0.5 to 1.0)
+
+// *********************** FLUID PROPERTIES ("constant/transportProperties") *********************** //
+nu_water    1.09e-06;
+nu_air      1.48e-05;
+
+// rho_water   998.8; //DTC
+rho_water   997;
+rho_air     1;
+
+// ***************************************************************************** //
+

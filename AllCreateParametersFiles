@@ -1,0 +1,40 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+# . $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# create files to replace Parameters files during runtime
+rm Parameters.*
+# Reset the original file with 0 files if they have been changed
+sed -i 's/$maxCo1/$maxCo0/' Parameters
+sed -i 's/$maxAlphaCo1/$maxAlphaCo0/' Parameters
+sed -i 's/$deltaT1/$deltaT0/' Parameters
+# 
+sed -i 's/$maxCo2/$maxCo0/' Parameters
+sed -i 's/$maxAlphaCo2/$maxAlphaCo0/' Parameters
+sed -i 's/$deltaT2/$deltaT0/' Parameters
+# 
+sed -i 's/$maxCo3/$maxCo0/' Parameters
+sed -i 's/$maxAlphaCo3/$maxAlphaCo0/' Parameters
+sed -i 's/$deltaT3/$deltaT0/' Parameters
+# 
+cp Parameters Parameters.0
+# 
+cp Parameters Parameters.1
+#
+sed -i 's/$maxCo0/$maxCo1/' Parameters.1
+sed -i 's/$maxAlphaCo0/$maxAlphaCo1/' Parameters.1
+sed -i 's/$deltaT0/$deltaT1/' Parameters.1
+# 
+cp Parameters Parameters.2
+sed -i 's/$maxCo0/$maxCo2/' Parameters.2
+sed -i 's/$maxAlphaCo0/$maxAlphaCo2/' Parameters.2
+sed -i 's/$deltaT0/$deltaT2/' Parameters.2
+# 
+cp Parameters Parameters.3
+sed -i 's/$maxCo0/$maxCo3/' Parameters.3
+sed -i 's/$maxAlphaCo0/$maxAlphaCo3/' Parameters.3
+sed -i 's/$deltaT0/$deltaT3/' Parameters.3
+#------------------------------------------------------------------------------
+

@@ -1,0 +1,192 @@
+//**************** MESHING (blockMeshDict) ************************************************* //
+// Hull Bounding Box (Half Hull)
+// hullXmin  -0.113504;
+// hullYmin  -0.429252;
+// hullZmin  0;
+// hullXmax   6.16209;
+// hullYmax   0;
+// hullZmax   0.572322;
+// zWL       0.244;     // Waterline or Free Surface Height
+
+#include "hullBounds.txt"
+
+
+// hullXmin   0;
+// hullYmin  -0.45555;
+// hullZmin  -0.026;
+// hullXmax   4.176;
+// hullYmax   0;
+// hullZmax   0.423;
+// zWL       0.2264;     // Waterline or Free Surface Height
+
+//////////// Below are automatically calculated //////////////
+dHullX    #eval{$hullXmax - $hullXmin};  // hull length (~Lpp)
+dHullY    #eval{$hullYmax - $hullYmin};  // hull hlaf-breadth
+dHullZ    #eval{$hullZmax - $hullZmin};  // hull depth
+
+meshFineness  #eval{6/$dHullX*1.0};  // mesh finess (cell size) relative to hull length (assume DTC is 6m with max cell size 1m)
+
+// XYZ Bounds of Rectangular Block
+// xmin = -4Lpp, xmax = Lpp + 1.5Lpp
+// ymin = -3Lpp, ymax = 0
+// zmin = -2.5Lpp, zmax = 1.0Lpp
+xmin    #eval{floor($hullXmin - 4*$dHullX)};    
+xmax    #eval{ceil($hullXmax + 1.5*$dHullX)};
+ymin    #eval{floor(-3*$dHullX)};    
+ymax    0;
+zmin    #eval{floor($hullZmin - 2.5*$dHullX)};  
+zmax    #eval{ceil($hullZmax + 1.0*$dHullX)};
+
+xcells  #eval{round(($xmax - $xmin)*$meshFineness)};     // no. of celles between xmin and xmax (assume max 1m cell size)
+ycells  #eval{round(($ymax - $ymin)*$meshFineness)};     // no. of celles between ymin and ymax
+
+// Z-dir Refinement
+nCellFS    4;          // no. of refined cells just above and below Free Surface
+FSCellThickness #eval{0.014/$meshFineness}; // Free Surface Cell Thickness
+
+// Cell thicknesses in Z-dir
+dCellz01     #eval{0.300/$meshFineness}; // height of cell between z0 and z1
+dCellz12     #eval{0.025/$meshFineness};
+dCellz23     $FSCellThickness;
+dCellz34     $FSCellThickness;
+dCellz45     #eval{0.032/$meshFineness};
+dCellz56     #eval{0.180/$meshFineness};
+// Cell thicknesses should be relative to the hull dimensions and mesh resolution (coarse, medium, fine)
+
+z0   $zmin;
+z1   #eval{$hullZmin - 1.80*$dHullZ};  // same as zminC3
+z2   #eval{$zWL-($FSCellThickness*$nCellFS)};          // Just below Free Surface
+z3   $zWL;                                  // Free Surface Height
+z4   #eval{$zWL+($FSCellThickness*$nCellFS)};          // Just above Free Surface
+z5   #eval{$hullZmax + 1.30*$dHullZ};  // same as zmaxC3
+z6   $zmax;         // Top End of Atmosphere
+
+// no. of cells between z0 and z1
+zcells01    #eval{round(mag($z1-$z0)/$dCellz01)};      zGrading01      0.05; // gradually reduced to 5%
+zcells12    #eval{round(mag($z2-$z1)/$dCellz12)};      zGrading12      1;
+zcells23    $nCellFS;                                  zGrading23      1;
+zcells34    $nCellFS;                                  zGrading34      1;
+zcells45    #eval{round(mag($z5-$z4)/$dCellz45)};      zGrading45      1;
+zcells56    #eval{round(mag($z6-$z5)/$dCellz56)};      zGrading56      5; // gradually increased by 5 times
+
+yGrading    1;
+
+//////////// REFINEMENT BOX REGIONS XY(Z)-dir refinement (topoSetDict and refineMeshDict) ////////////
+// X dimensions
+xminC6  #eval{$hullXmin - 0.1*$dHullX}; // -10% of hull length
+xminC5  #eval{$hullXmin - 0.2*$dHullX}; // -20% of hull length
+xminC4  #eval{$hullXmin - 0.3*$dHullX}; // -30% of hull length
+xminC3  #eval{$hullXmin - 0.5*$dHullX}; // -50% of hull length
+xminC2  #eval{$hullXmin - 0.8*$dHullX}; // -80% of hull length
+xminC1  #eval{$hullXmin - 1.6*$dHullX}; // -160% of hull length
+
+xmaxC6  #eval{$hullXmax + 0.03*$dHullX}; // +3% of hull length
+xmaxC5  #eval{$hullXmax + 0.06*$dHullX}; // +6% of hull length
+xmaxC4  #eval{$hullXmax + 0.15*$dHullX}; // +15% of hull length
+xmaxC3  #eval{$hullXmax + 0.30*$dHullX}; // +30% of hull length
+xmaxC2  #eval{$hullXmax + 0.45*$dHullX}; // +45% of hull length
+xmaxC1  #eval{$hullXmax + 0.60*$dHullX}; // +60% of hull length
+
+// Y dimensions
+yminC6  #eval{$hullYmin - 0.2*$dHullY}; // -20% of hull half breadth
+yminC5  #eval{$hullYmin - 0.5*$dHullY}; // -50% of hull half breadth
+yminC4  #eval{$hullYmin - 1.5*$dHullY}; // -150% of hull half breadth
+yminC3  #eval{$hullYmin - 2.5*$dHullY}; // -250% of hull half breadth
+yminC2  #eval{$hullYmin - 6.0*$dHullY}; // -600% of hull half breadth
+yminC1  #eval{$hullYmin - 12.0*$dHullY}; // -1200% of hull half breadth
+
+ymaxC1  0; // Symmetry Plane, centre line
+ymaxC2  0;
+ymaxC3  0;
+ymaxC4  0;
+ymaxC5  0;
+ymaxC6  0;
+
+// Z dimensions (these values can effect the mesh non-orthogonality at the transitions)
+zminC6  #eval{$hullZmin - 0.25*$dHullZ}; // -25% of hull depth
+zminC5  #eval{$hullZmin - 0.50*$dHullZ}; // -50% of hull depth
+zminC4  #eval{$hullZmin - 1.00*$dHullZ}; // -100% of hull depth
+zminC3  #eval{$hullZmin - 1.80*$dHullZ}; // -180% of hull depth, same as z1
+zminC2  #eval{$hullZmin - 2.60*$dHullZ}; // -260% of hull depth
+zminC1  #eval{$hullZmin - 4.40*$dHullZ}; // -440% of hull depth
+
+zmaxC6  #eval{$hullZmax + 0.20*$dHullZ}; // +20% of hull depth
+zmaxC5  #eval{$hullZmax + 0.45*$dHullZ}; // +45% of hull depth
+zmaxC4  #eval{$hullZmax + 0.80*$dHullZ}; // +80% of hull depth
+zmaxC3  #eval{$hullZmax + 1.30*$dHullZ}; // +130% of hull depth, same as z5
+zmaxC2  #eval{$hullZmax + 2.20*$dHullZ}; // +220% of hull depth
+zmaxC1  #eval{$hullZmax + 4.00*$dHullZ}; // +400% of hull depth
+
+//////////////  BODY MESH and REFINEMENT (snappyHexMeshDict) //////////// 
+// https://www.cfdsupport.com/OpenFOAM-Training-by-CFD-Support/node119.html
+maxLocalCells   5000000;
+maxGlobalCells  10000000;  // Max. Total Cells
+
+// Hull Refinement (Edge/Feature, Surface, Region, Prism Layers)
+// 1. EDGE Refinement
+featuresIncludedAngle     150;     // [deg] surfaceFeatureExtractDict, ori 150, 0: selects no edges, 180 : selects all edges
+edgeRefinementLevel       0;       // used with "hull.eMesh"
+
+// 2. SURFACE Refinement
+surfaceRefinementLevel    (0 0);   // (min_level max_level)
+resolveFeatureAngle       45;      // [deg] smaller >> more feature, applies maximum level of refinement to cells that can see intersections whose angle exceeds this value.
+nCellsBetweenLevels       3;
+
+// 3. REGION Refinement (region around hull)
+refineRegionDistance1     #eval{0.2*$dHullY};     // [m] distance from hull surface
+// regionRefinementLevels    (($refineRegionDistance1 1)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
+regionRefinementLevels    ((0 0)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
+
+// Additional Regions Refinements (e.g. Rudder region, Bow Thruster)
+// topoSet cannot be used for these regions, topoSet region must be cover the whole geometry
+// use 0 refinementLevel to turn off these refinement regions
+// for Wake Region (Box)
+wakeRegionMin   (-1.0 -1.0 0);    // (xmin ymin zmin)
+wakeRegionMax   (0.1 0 0.35);       // (xmax ymax zmax)
+wakeRegionRefinementLevels  0;      // no. of level relative to background mesh
+
+// for Appendages Region (Box)
+appdRegionMin   (-0.025 -0.3 -0.05);    // [m] (xmin ymin zmin)
+appdRegionMax   (1.025 -0.11 0.15);      // [m] (xmax ymax zmax)
+appdRegionRefinementLevels  0;
+
+// for Tunnel Region (Cylinder)
+tunnelRegionPoint1  (4.225 -0.71 0.115);    // [m] (x y z)
+tunnelRegionPoint2  (4.225 -0.50 0.115);    // [m] (x y z)
+tunnelRegionRadius  0.065;
+tunnelRegionRefinementLevels  0;
+
+
+// 4. PRISM Layers on Hull Surface (need to use y+ here, 30 to 300 for wall functions)
+// Calculate prism layer thickness for first cell layer using target y+ value
+// targetYPlus               100;     // y+ value for first cell layer
+// nu_water                  1.09e-06;            // kinematic viscosity of water
+// Lpp                       $dHullX;               // Length of the ship
+// Uinlet                    1;                   // inlet velocity
+// Re                        #eval{$Uinlet*$Lpp/$nu_water};    // Reynolds number for y+ calculation
+// Cf                        #eval{0.075/pow((log10($Re)-2),2)};   // skin friction coefficient ITTC 1957
+// yCellCentre               #eval{$targetYPlus*$Lpp/($Re*sqrt(Cf/2))}; // thickness of first cell layer
+
+addLayers                 true;
+nPrismLayers              3; // 3
+
+// Boundary layer is defined by using couple of parameters
+// 1. firstLayerThickness & thickness(total) OR
+// 2. firstLayerThickness & expansionRatio OR
+// 3. finalLayerThickness & expansionRatio OR
+// 4. finalLayerThickness & thickness(total) OR
+// 5. thickness(total)    & expansionRatio
+relativeSizes             true;  // absolute or relative to cell next to patch? (e.g., where cell is large, layer thuckness is large)
+expansionRatio            1.5; // 1.5
+// firstLayerThickness       #eval{$yCellCentre*2}; // absolute thickness
+// firstLayerThickness       0.004; // absolute thickness
+// firstLayerThickness       0.3; // relative thickness
+finalLayerThickness       0.7; // 0.7
+// thickness                 0.7;
+// Note: Relative Thickness are smaller than they should be, e.g., finalLayerThickness = 0.7, but the layer thickness is around 0.3
+
+minLayerThickness         0.00001; // minimum layer thickness below which the layer is not added
+layerFeatureAngle         180;   // ori 60, 0 >> only add layers to flat surface (no layer at the edges)
+
+// ***************************************************************************** //
+

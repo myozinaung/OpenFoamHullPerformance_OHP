@@ -1,0 +1,5 @@
+mass            21.0021;   // [kg]
+Ixx             0.4365;       // [kg.m^2] for Roll motion (not important here)
+Iyy             3.8328;      // [kg.m^2] for Pitch motion
+Izz             4.1456;      // [kg.m^2] for Yaw motion (not important here)
+centreOfMass    (0.7060 0 0.0703); // [m] (x y z), (LCB 0 VCG)

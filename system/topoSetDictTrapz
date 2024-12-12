@@ -1,0 +1,141 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+para {#include        "../Parameters"}
+
+actions
+(
+    // for Box Shape Refinement
+    {
+        name    c1;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC1 $para/yminC1 $para/zminC1) ($para/xmaxC1 $para/ymaxC1 $para/zmaxC1);
+
+    }
+
+    {
+        name    c2;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC2 $para/yminC2 $para/zminC2) ($para/xmaxC2 $para/ymaxC2 $para/zmaxC2);
+    }
+
+    {
+        name    c3;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC3 $para/yminC3 $para/zminC3) ($para/xmaxC3 $para/ymaxC3 $para/zmaxC3);
+    }
+
+    {
+        name    c4;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC4 $para/yminC4 $para/zminC4) ($para/xmaxC4 $para/ymaxC4 $para/zmaxC4);
+    }
+
+    {
+        name    c5;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC5 $para/yminC5 $para/zminC5) ($para/xmaxC5 $para/ymaxC5 $para/zmaxC5);
+    }
+
+    {
+        name    c6;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box ($para/xminC6 $para/yminC6 $para/zminC6) ($para/xmaxC6 $para/ymaxC6 $para/zmaxC6);
+    }
+
+//----------------------------------------------------------------------------//
+    // // for Trapezoidal Shape Refinement
+    // {
+    //     name    c1;
+    //     type    cellSet;
+    //     action  new;
+    //     source  rotatedBoxToCell;
+    //     origin      ($para/xminC1 $para/ymin2C1 $para/zminC1);
+    //     i           ($para/dxC1 $para/dy1C1 0);
+    //     j           (0 $para/dy2C1 0);
+    //     k           (0 0 $para/dzC1);
+    // }
+
+    // {
+    //     name    c2;
+    //     type    cellSet;
+    //     action  new;
+    //     source  rotatedBoxToCell;
+    //     origin      ($para/xminC2 $para/ymin2C2 $para/zminC2);
+    //     i           ($para/dxC2 $para/dy1C2 0);
+    //     j           (0 $para/dy2C2 0);
+    //     k           (0 0 $para/dzC2);
+    // }
+
+    // {
+    //     name    c3;
+    //     type    cellSet;
+    //     action  new;
+    //     source  rotatedBoxToCell;
+    //     origin      ($para/xminC3 $para/ymin2C3 $para/zminC3);
+    //     i           ($para/dxC3 $para/dy1C3 0);
+    //     j           (0 $para/dy2C3 0);
+    //     k           (0 0 $para/dzC3);
+    // }
+
+    // {
+    //     name    c4;
+    //     type    cellSet;
+    //     action  new;
+    //     source  rotatedBoxToCell;
+    //     origin      ($para/xminC4 $para/ymin2C4 $para/zminC4);
+    //     i           ($para/dxC4 $para/dy1C4 0);
+    //     j           (0 $para/dy2C4 0);
+    //     k           (0 0 $para/dzC4);
+    // }
+
+    // {
+    //     name    c5;
+    //     type    cellSet;
+    //     action  new;
+    //     source  rotatedBoxToCell;
+    //     origin      ($para/xminC5 $para/ymin2C5 $para/zminC5);
+    //     i           ($para/dxC5 $para/dy1C5 0);
+    //     j           (0 $para/dy2C5 0);
+    //     k           (0 0 $para/dzC5);
+    // }
+
+    // {
+    //     name    c6;
+    //     type    cellSet;
+    //     action  new;
+    //     source  rotatedBoxToCell;
+    //     origin      ($para/xminC6 $para/ymin2C6 $para/zminC6);
+    //     i           ($para/dxC6 $para/dy1C6 0);
+    //     j           (0 $para/dy2C6 0);
+    //     k           (0 0 $para/dzC6);
+    // }
+);
+
+
+// ************************************************************************* //

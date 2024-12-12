@@ -1,0 +1,86 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2406                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+para {#include        "../ParametersConst"}
+
+dynamicFvMesh   dynamicMotionSolverFvMesh;
+
+motionSolverLibs (rigidBodyMeshMotion);
+
+motionSolver    rigidBodyMotion;
+
+report          on;
+
+solver
+{
+    type Newmark;
+}
+
+accelerationRelaxation 0.4;
+
+bodies
+{
+    hull
+    {
+        para {#include        "../ParametersConst"}
+        type            rigidBody;
+        parent          root;
+
+        centreOfMass    (0 0 0);
+        mass            $para.mass;
+        inertia         ($para.Ixx 0 0 $para.Iyy 0 $para.Izz);
+        transform       (1 0 0 0 1 0 0 0 1) $para.centreOfMass;
+
+        joint
+        {
+            type    composite;
+            joints
+            (
+                {
+                    type Pz;
+                }
+                {
+                    type Ry;
+                }
+            );
+        }
+
+        patches         (hull);
+        innerDistance   $para.innerDistance;
+        outerDistance   $para.outerDistance;
+    }
+}
+
+restraints
+{
+    translationDamper
+    {
+        para {#include        "../ParametersConst"}
+        type linearDamper;
+        body hull;
+        coeff $para/translationDamperCoeff;
+    }
+
+    rotationDamper
+    {
+        para {#include        "../ParametersConst"}
+        type sphericalAngularDamper;
+        body hull;
+        coeff $para/rotationDamperCoeff;
+    }
+}
+
+
+// ************************************************************************* //

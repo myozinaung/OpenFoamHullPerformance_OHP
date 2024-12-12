@@ -1,0 +1,49 @@
+// NOTE: #eval doesn't work in OpenFoam Foundation Version
+// *********************** SHIP SPEED (0.orig/U) ********************************* //
+// Uknot     25;                                   // [knot] in Full Scale
+// Scale     #eval{355.0/5.976};                   // Scale ratio for Speed scaling only
+// U         #eval{$Uknot*1852/3600/sqrt($Scale)}; // corrseponding model speed in [m/s]
+U      4.598;                                // [m/s] in Model Scale
+
+noCores   16; // no. of subdomains in decomposeParDict
+
+// *********************** RUNTIME CONTROLS (controlDict) *********************** //
+// can be changed during running the solver
+startTime       0;
+endTime         5;  // [sec] DTC: 35
+writeInterval   1;   // [sec]
+purgeWrite      0;   // 1 >> save only last write (to save storage), 0 >> save all write (needed for animation)
+
+// startFrom   startTime;
+startFrom   latestTime; // resume from previous stop time (start from 0 sec for new sim)
+
+stopAt      endTime;
+// stopAt          writeNow;  // save the data at current time step and stop
+// stopAt          nextWrite; // save the data at next writeInterval and stop
+
+CFLAutoTimeStep  yes;    // adjust time step with max courant number, set "no" for manual time steps
+
+// To adjust deltaT, maxCo and maxAlphaCo with time
+time0     0;      maxCo0  5;      maxAlphaCo0     5;     deltaT0     0.0001;
+time1     0.10;   maxCo1  10;     maxAlphaCo1     5;     deltaT1     0.0002;
+time2     0.50;   maxCo2  15;     maxAlphaCo2     10;    deltaT2     0.0005;
+time3     1.00;   maxCo3  25;     maxAlphaCo3     15;    deltaT3     0.0010;
+
+deltaT          $deltaT0; // for manual time step
+maxCo           $maxCo0;          // max Courant No.
+maxAlphaCo      $maxAlphaCo0;     // max Interface Courant No.
+maxDeltaT       0.002; // DTC: 0.01
+
+//*********************** RUNTIME CONTROL, STOPPING CRITERIA *********************** //
+// DIVERGNECE CHECK
+maxInitialMomentumResidual  0.7; // divergence indicator (too much U residual)
+maxMomentumIter             100; // divergence indicator (too long solving U)
+
+// CONVERGENCE CHECK
+minMomentumResidual         1e-04; // convergnce indicator (low enough U residual)
+// Stop if change in Drage Coeff (Cd) stay within the Range averaged over a Window of steps (Converged)
+dragCoeffRange          1e-3; // (not changing too much)
+dragCoeffWindow         20; // steps
+
+// ***************************************************************************** //
+
