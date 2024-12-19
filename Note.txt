@@ -1,13 +1,10 @@
 TODO
+- Mesh region Refinement, more relative parameters
+- dynamicMeshDitc >> Damping Coefficients, morphing distances
+- switches for mannual overriding of parameters
 - To handle compressed stl file
 - include variable directly, // e.g., value           #include        "hullBounds.zWL";
 - single combined log file for loop application
-- Add add initial Sinkage and Trim (need to update postprocess)
-
-
-- IGES surfaces to STL surface mesh --> GMSH
-- STL surface mesh to STL Manifold --> Blender
-- STL Manifold: clip and calculate mass properties --> Blender
 
 - SLOME, GMSH, Blender, MeshLab, MeshMixer, FreeCAD
 

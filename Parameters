@@ -23,7 +23,7 @@ stopAt      endTime;
 
 CFLAutoTimeStep  yes;    // adjust time step with max courant number, set "no" for manual time steps
 
-// To adjust deltaT, maxCo and maxAlphaCo with time
+// To adjust deltaT, maxCo and maxAlphaCo with time (controlDict parametersUpdate and AllCreateParametersFiles)
 time0     0;      maxCo0  5;      maxAlphaCo0     5;     deltaT0     0.0001;
 time1     0.10;   maxCo1  10;     maxAlphaCo1     5;     deltaT1     0.0002;
 time2     0.50;   maxCo2  15;     maxAlphaCo2     10;    deltaT2     0.0005;

@@ -4,7 +4,9 @@ cd ${0%/*} || exit 1    # Run from this directory
 # Source tutorial run functions
 # . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-# create files to replace Parameters files during runtime
+# This script creates the addtional Parameters files (Parameters.1, Parameters.2, Parameters.3) 
+# that will replace the original Parameters file at corresponding time (time1, time2, time3).
+
 rm Parameters.*
 # Reset the original file with 0 files if they have been changed
 sed -i 's/$maxCo1/$maxCo0/' Parameters
