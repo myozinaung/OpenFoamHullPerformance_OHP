@@ -16,6 +16,16 @@ FoamFile
 
 solvers
 {
+    // For DisplacementMotionSolver mesh shrinker
+    // https://www.openfoam.com/documentation/guides/latest/doc/guide-meshing-snappyhexmesh-layers.html
+    cellDisplacement
+    {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.01;
+    }
+    
     "alpha.water.*"
     {
         nAlphaCorr      3;
@@ -92,6 +102,7 @@ cache
 {
     grad(U);
 }
+
 
 
 // ************************************************************************* //

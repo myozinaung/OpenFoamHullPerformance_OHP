@@ -40,6 +40,12 @@ hull.stl
 
     // Write features to obj format for postprocessing
     writeObj            yes;
+
+    // Output surface curvature
+    curvature true;
+
+    // Write closeness/curvature/proximity fields as VTK for postprocessing
+    writeVTK            yes;
 }
 
 

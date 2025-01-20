@@ -53,7 +53,7 @@ runParallel redistributePar -reconstruct -constant -overwrite # (not work in OF1
 
 rm -rf processor* # clean decomposed mesh not to interfere with interFoam decomposition
 
-runApplication checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk
+runApplication checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk -writeChecks json
 
 # # for ParaView mesh quality visualization
 runApplication setsToZones -noFlipMap -time 3 # windows ParaView reader cannot load sets, therefore first convert sets to zones

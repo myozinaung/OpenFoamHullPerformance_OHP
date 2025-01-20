@@ -15,6 +15,12 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 para {#include        "../ParametersMesh"}
 
+// Type of mesh generation:
+//  - castellated (default)
+//  - castellatedBufferLayer
+// type            castellatedBufferLayer;
+
+
 // Which of the steps to run
 castellatedMesh true;
 snap            true;
@@ -137,6 +143,22 @@ castellatedMeshControls
     resolveFeatureAngle $para/resolveFeatureAngle;
 
 
+    // Additional refinement for regions of high curvature. Expressed
+    // (bit similar to gapLevel) as:
+    // - number of cells per radius of curvature. (usually a few is
+    //   good enough)
+    // - starting cell level? Not used at the moment.
+    // - maximum cell level. This can be smaller or larger than the
+    //   max 'surface' level
+    // - minimum curvature radius to ignore (expressed as a cell level).
+    //   This can be used to avoid detecting small sharp surface
+    //   features. Set to -1 to ignore.
+    //
+    // curvatureLevel (10 0 10 -1);
+    // https://www.openfoam.com/news/main-news/openfoam-v2212/pre-processing
+
+
+
     // Region-wise refinement
     // ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -236,6 +258,15 @@ snapControls
     // // Detect features between multiple surfaces
     // // (only for explicitFeatureSnap, default = false)
     // multiRegionFeatureSnap false;
+
+    // for castellatedBufferLayer
+    solver  displacementPointSmoothing;
+    displacementPointSmoothingCoeffs
+    {
+        // Use laplacian to untangle problem areas
+        pointSmoother           laplacian;
+        nPointSmootherIter      10;
+    }
 }
 
 
@@ -297,6 +328,7 @@ addLayersControls
     //       settings. This is important for this geometry since we do want
     //       layers at the leading edge of the hull.
     featureAngle $para/layerFeatureAngle;
+    // When two surfaces upon which layers are built are connected, the mesh may or may not be shrunk depending on the settings. When the angle between the two surfaces is smaller then parameter featureAngle value, the mesh will shrink in the corner from both surfaces.
 
     // Specified to be consistent with v1712 settings (see 1806 release notes)
     mergePatchFacesAngle 60;    // featureAngle, ori 60
@@ -337,10 +369,21 @@ addLayersControls
     // mesh.
     nLayerIter 50;
 
+    // Add layers in multiple passes - gives layers a chance to rotate
+    nOuterIter      5; // improved layers
+
     // Max number of iterations after which relaxed meshQuality controls
     // get used. Up to nRelaxIter it uses the settings in meshQualityControls,
     // after nRelaxIter it uses the values in meshQualityControls::relaxed.
     nRelaxedIter 20;
+
+    // for DisplacementMotionSolver mesh shrinker
+    meshShrinker    displacementMotionSolver;
+    solver          displacementLaplacian;
+    displacementLaplacianCoeffs
+    {
+        diffusivity     quadratic inverseDistance (hull);
+    }
 }
 
 

@@ -1,0 +1,14 @@
+{
+    "maxNonOrth" : 69.8946,
+    "aveNonOrth" : 7.36555,
+    "maxSkew" : 8.17052,
+    "nWarnSkew" : 14,
+    "minDeterminant" : 5.86028e-07,
+    "aveDeterminant" : 0.739878,
+    "thresholdDeterminant" : 0.001,
+    "nErrorDeterminant" : 20598,
+    "minFaceWeight" : 0.0514162,
+    "aveFaceWeight" : 0.480119,
+    "minFaceVolumeRatio" : 0.029704,
+    "aveFaceVolumeRatio" : 0.912593
+}

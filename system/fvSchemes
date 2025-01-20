@@ -38,6 +38,7 @@ divSchemes
 laplacianSchemes
 {
     default         Gauss linear corrected;
+    // laplacian(diffusivity,cellDisplacement) Gauss linear corrected; // for MeshShrinker
 }
 
 interpolationSchemes
