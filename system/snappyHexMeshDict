@@ -290,19 +290,21 @@ addLayersControls
         }
     }
 
+    // thicknessModel firstAndExpansion;
+
     // Expansion factor for layer mesh
     expansionRatio $para/expansionRatio;
 
     // // Wanted thickness of the layer next to the wall.
     // // If relativeSizes this is relative to undistorted size of cell
     // // outside layer.;
-    // firstLayerThickness $para/firstLayerThickness;
+    firstLayerThickness $para/firstLayerThickness;
 
     // Wanted thickness of final added cell layer. If multiple layers
     // is the thickness of the layer furthest away from the wall.
     // Relative to undistorted size of cell outside layer.
     // See relativeSizes parameter.
-    finalLayerThickness $para/finalLayerThickness;
+    // finalLayerThickness $para/finalLayerThickness;
 
     // // Total thickness of layers of points outside surface
     // thickness $para/thickness;
@@ -370,7 +372,7 @@ addLayersControls
     nLayerIter 50;
 
     // Add layers in multiple passes - gives layers a chance to rotate
-    nOuterIter      5; // improved layers
+    nOuterIter      6; // improved layers
 
     // Max number of iterations after which relaxed meshQuality controls
     // get used. Up to nRelaxIter it uses the settings in meshQualityControls,
@@ -384,6 +386,24 @@ addLayersControls
     {
         diffusivity     quadratic inverseDistance (hull);
     }
+
+    // new hybrid layer input, https://www.openfoam.com/news/main-news/openfoam-v20-12/pre-processing#pre-processing-snappyhexmesh-hybrid-layer-input
+    // relativeSizes false;
+    // thicknessModel firstAndRelativeFinal;
+    // firstLayerThickness 0.1e-3;
+    // finalLayerThickness 0.5;
+
+    // overallThickness 0.6;
+    // expansionRatio 1.5;
+    // possible options
+    // model	                firstLayer	finalLayer	overall	expansion
+    // firstAndOverall	            V	        .	        V	    .
+    // firstAndExpansion	        V	        .	        .	    V
+    // finalAndOverall      	    .	        V	        V	    .
+    // finalAndExpansion    	    .	        V	        .	    V
+    // overallAndExpansion  	    .	        .	        V	    V
+    // firstAndRelativeFinal	    V	        V	        .	    . 
+
 }
 
 
