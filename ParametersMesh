@@ -176,13 +176,17 @@ nPrismLayers              3; // 3
 // 3. finalLayerThickness & expansionRatio OR
 // 4. finalLayerThickness & thickness(total) OR
 // 5. thickness(total)    & expansionRatio
-relativeSizes             true;  // absolute or relative to cell next to patch? (e.g., where cell is large, layer thuckness is large)
+relativeSizes             false;  // absolute or relative to cell next to patch? (e.g., where cell is large, layer thuckness is large)
+// set relativeSizes to false, when using hybrid thickness model: firstAndRelativeFinal
+// thicknessModel            firstAndRelativeFinal; // firstAndRelativeFinal, firstAndOverall, firstAndExpansion, finalAndOverall, finalAndExpansion, overallAndExpansion 
+thicknessModel            firstAndExpansion;
 expansionRatio            1.5; // 1.5
 // firstLayerThickness       #eval{$yCellCentre*2}; // absolute thickness
-// firstLayerThickness       0.004; // absolute thickness
-firstLayerThickness       0.3; // relative thickness
-finalLayerThickness       0.7; // 0.7
+firstLayerThickness       0.004; // 0.004, absolute thickness
+// firstLayerThickness       0.3; // relative thickness
+finalLayerThickness       #eval{0.8*2}; // 0.7, use double for same size as background mesh
 // thickness                 0.7;
+overallThickness          0.7; // 0.7
 // Note: Relative Thickness are smaller than they should be, e.g., finalLayerThickness = 0.7, but the layer thickness is around 0.3
 
 minLayerThickness         0.00001; // minimum layer thickness below which the layer is not added

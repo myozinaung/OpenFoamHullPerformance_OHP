@@ -290,8 +290,9 @@ addLayersControls
         }
     }
 
-    // thicknessModel firstAndExpansion;
+    thicknessModel $para/thicknessModel;
 
+    // Only the thickness or expansion ratio that is used need to be present, if not it will overwrite the other one.
     // Expansion factor for layer mesh
     expansionRatio $para/expansionRatio;
 
@@ -304,10 +305,11 @@ addLayersControls
     // is the thickness of the layer furthest away from the wall.
     // Relative to undistorted size of cell outside layer.
     // See relativeSizes parameter.
-    // finalLayerThickness $para/finalLayerThickness;
+    finalLayerThickness $para/finalLayerThickness;
 
     // // Total thickness of layers of points outside surface
     // thickness $para/thickness;
+    overallThickness $para/overallThickness;
 
     // Minimum thickness of cell layer. If for any reason layer
     // cannot be above minThickness do not add layer.
@@ -379,7 +381,8 @@ addLayersControls
     // after nRelaxIter it uses the values in meshQualityControls::relaxed.
     nRelaxedIter 20;
 
-    // for DisplacementMotionSolver mesh shrinker
+    // for DisplacementMotionSolver mesh shrinker, https://www.openfoam.com/news/main-news/openfoam-v2312/pre-processing#snappy_layers
+    // https://www.openfoam.com/documentation/guides/latest/doc/guide-meshing-snappyhexmesh-layers.html
     meshShrinker    displacementMotionSolver;
     solver          displacementLaplacian;
     displacementLaplacianCoeffs
@@ -390,8 +393,8 @@ addLayersControls
     // new hybrid layer input, https://www.openfoam.com/news/main-news/openfoam-v20-12/pre-processing#pre-processing-snappyhexmesh-hybrid-layer-input
     // relativeSizes false;
     // thicknessModel firstAndRelativeFinal;
-    // firstLayerThickness 0.1e-3;
-    // finalLayerThickness 0.5;
+    // firstLayerThickness 0.004; // absolute
+    // finalLayerThickness 1.0; // relative
 
     // overallThickness 0.6;
     // expansionRatio 1.5;
