@@ -3,12 +3,23 @@ import gmsh
 import math
 import argparse
 
-def main(igs_file, scale, mirror):
+def main(input_file, scale, mirror):
     # Initialize gmsh
     gmsh.initialize()
 
-    # Merge the IGS file: This loads the IGS file into Gmsh.
-    gmsh.merge(igs_file)
+    # Get file extension
+    file_extension = input_file.lower().split('.')[-1]
+    
+    # Check supported file types
+    supported_formats = {'igs', 'iges', 'stp', 'step', 'brep'}
+    if file_extension not in supported_formats:
+        raise ValueError(f"Unsupported file format: {file_extension}. Supported formats: {supported_formats}")
+
+    # Merge the input file: This loads the file into Gmsh.
+    try:
+        gmsh.merge(input_file)
+    except Exception as e:
+        raise Exception(f"Failed to load {input_file}: {str(e)}")
 
     # Classify Surfaces: This step is necessary to prepare the surfaces for meshing.
     angle = 20  # Angle in degrees, below which two surfaces are considered to be on the same plane
@@ -60,14 +71,16 @@ def main(igs_file, scale, mirror):
     gmsh.finalize()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process an IGS file and scale it.")
-    parser.add_argument("igs_file", type=str, help="Path to the input IGS file")
+    parser = argparse.ArgumentParser(description="Process a CAD file (IGS/STEP/BREP) and convert it to STL.")
+    parser.add_argument("input_file", type=str, help="Path to the input CAD file (supported formats: .igs, .iges, .stp, .step, .brep)")
     parser.add_argument("--scale", type=float, default=1.0, help="Scaling factor (default is 1.0)")
     parser.add_argument("--mirror", action="store_true", help="Mirror the geometry in the XZ-plane")
 
     args = parser.parse_args()
 
-    main(args.igs_file, args.scale, args.mirror)
+    main(args.input_file, args.scale, args.mirror)
 
 # Run the script with the following command:
-# python3 IGStoSTL.py jbc.igs --scale 0.001
+# python3 IGStoSTL.py model.igs --scale 0.001
+# or
+# python3 IGStoSTL.py model.step --scale 0.001
