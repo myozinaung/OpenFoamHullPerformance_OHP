@@ -31,11 +31,11 @@ success, message = processor.close_openings(
 print("Close openings: ", message)
 
 # Scale by 2, translate 10 units in x, and rotate 45 degrees around z
-result = processor.transform_geometry(
+success, message = processor.transform_geometry(
     "geometry/hull.stl",
     "geometry/hullTransformed.stl",
     scale=2.0,
-    translate=(10, 0, 0),
-    rotate=(0, 0, 45)
+    translate=(0, 0, 0),
+    rotate=(0, 0, 0) # +ive bow down
 )
-print("Transform geometry: ", result)
+print("Transform geometry: ", message)

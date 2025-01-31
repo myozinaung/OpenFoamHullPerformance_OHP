@@ -362,6 +362,7 @@ class GeometryProcessor:
             # Load the mesh
             mesh = trimesh.load_mesh(input_file)
             initial_state = {
+                "is_watertight": mesh.is_watertight,
                 "volume": mesh.volume,
                 "area": mesh.area,
                 "center_mass": mesh.center_mass,
@@ -392,6 +393,7 @@ class GeometryProcessor:
             mesh.export(output_file)
 
             final_state = {
+                "is_watertight": mesh.is_watertight,
                 "volume": mesh.volume,
                 "area": mesh.area,
                 "center_mass": mesh.center_mass,
@@ -399,12 +401,10 @@ class GeometryProcessor:
             }
 
             status_message = (
-                f"Transformation complete:\n"
+                f"Processing complete:\n"
+                f"Initial watertight: {initial_state['is_watertight']} → Final: {final_state['is_watertight']}\n"
                 f"Volume: {initial_state['volume']:.2f} → {final_state['volume']:.2f}\n"
-                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}\n"
-                f"Center of mass: [{', '.join(f'{x:.2f}' for x in final_state['center_mass'])}]\n"
-                f"Bounds: min [{', '.join(f'{x:.2f}' for x in final_state['bounds'][0])}], "
-                f"max [{', '.join(f'{x:.2f}' for x in final_state['bounds'][1])}]"
+                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}"
             )
 
             return True, f"Successfully transformed mesh. {status_message}"
