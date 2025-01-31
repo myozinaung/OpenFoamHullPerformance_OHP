@@ -99,17 +99,32 @@ class GeometryProcessor:
         finally:
             self._finalize_gmsh()
 
-    def close_openings(self, input_file: str, output_file: str = None) -> Tuple[bool, str]:
+    def close_openings(
+        self,
+        input_file: str,
+        output_file: str = None,
+        method: str = 'trimesh'
+    ) -> Tuple[bool, str]:
         """
         Close openings in an STL mesh by extruding open edges to the XZ plane.
         
         Args:
             input_file (str): Path to the input STL file
             output_file (str, optional): Path for the output STL file
+            method (str, optional): Method to use ('trimesh' or 'gmsh'). Defaults to 'trimesh'
             
         Returns:
             Tuple[bool, str]: (Success status, Message/Error description)
         """
+        if method == 'trimesh':
+            return self._close_openings_trimesh(input_file, output_file)
+        elif method == 'gmsh':
+            return self._close_openings_gmsh(input_file, output_file)
+        else:
+            return False, f"Unsupported method: {method}. Use 'trimesh' or 'gmsh'."
+
+    def _close_openings_trimesh(self, input_file: str, output_file: str = None) -> Tuple[bool, str]:
+        """Internal method using trimesh to close openings."""
         try:
             import trimesh
             import numpy as np
@@ -170,6 +185,132 @@ class GeometryProcessor:
 
         except Exception as e:
             return False, f"Error during mesh processing: {str(e)}"
+
+    def _close_openings_gmsh(self, input_file: str, output_file: str = None) -> Tuple[bool, str]:
+        """Internal method using GMSH to close openings."""
+        try:
+            import numpy as np
+
+            # Validate input file
+            if not os.path.exists(input_file):
+                return False, f"Input file not found: {input_file}"
+
+            # Set default output file if none provided
+            if output_file is None:
+                output_file = os.path.splitext(input_file)[0] + '_closed.stl'
+
+            self._initialize_gmsh()
+            gmsh.option.setNumber("General.Terminal", 1)
+            gmsh.model.add("close_openings")
+
+            # Merge the STL file
+            gmsh.merge(input_file)
+
+            # Get mesh data
+            nodeTags, nodeCoords, _ = gmsh.model.mesh.getNodes()
+
+            # Build node mapping
+            tag_to_local = {}
+            coords_array = []
+            for i, tag in enumerate(nodeTags):
+                tag_to_local[tag] = i
+                coords_array.append((
+                    nodeCoords[3*i],
+                    nodeCoords[3*i + 1],
+                    nodeCoords[3*i + 2]
+                ))
+            coords_array = np.array(coords_array)
+
+            # Get triangles
+            eTypes, eIds, eNodes = gmsh.model.mesh.getElements(dim=2)
+            all_triangles = []
+            for etype, ids, nodes in zip(eTypes, eIds, eNodes):
+                if etype != 2:  # type 2 = triangle
+                    continue
+                for i in range(len(ids)):
+                    base = 3 * i
+                    all_triangles.append((
+                        nodes[base],
+                        nodes[base + 1],
+                        nodes[base + 2]
+                    ))
+            all_triangles = np.array(all_triangles, dtype=int)
+
+            # Find boundary edges
+            edge_dict = {}
+            for tri in all_triangles:
+                edges = [
+                    tuple(sorted((tri[0], tri[1]))),
+                    tuple(sorted((tri[1], tri[2]))),
+                    tuple(sorted((tri[2], tri[0]))),
+                ]
+                for e in edges:
+                    edge_dict[e] = edge_dict.get(e, 0) + 1
+
+            boundary_edges = [e for e, count in edge_dict.items() if count == 1]
+            
+            if not boundary_edges:
+                return True, "Mesh is already watertight. No modifications needed."
+
+            # Create new nodes and triangles
+            new_node_coords = []
+            new_node_tags = []
+            new_triangles = []
+            next_tag = max(nodeTags) + 1
+            projected_node_map = {}
+
+            # Project and create new nodes/triangles
+            for edge in boundary_edges:
+                v1, v2 = edge
+                
+                # Get or create projected nodes
+                for v in (v1, v2):
+                    if v not in projected_node_map:
+                        old_coords = coords_array[tag_to_local[v]]
+                        projected_node_map[v] = next_tag
+                        new_node_tags.append(next_tag)
+                        new_node_coords.append((old_coords[0], 0.0, old_coords[2]))
+                        next_tag += 1
+
+                pv1, pv2 = projected_node_map[v1], projected_node_map[v2]
+                new_triangles.append([v1, v2, pv1])
+                new_triangles.append([pv1, v2, pv2])
+
+            # Add new nodes to the model
+            if new_node_coords:
+                gmsh.model.mesh.addNodes(
+                    dim=2,
+                    tag=1,
+                    nodeTags=new_node_tags,
+                    coord=[c for xyz in new_node_coords for c in xyz]
+                )
+
+                # Add new triangles
+                _, existing_elem_ids, _ = gmsh.model.mesh.getElements(dim=2)
+                flattened_ids = np.concatenate(existing_elem_ids) if existing_elem_ids else []
+                next_elem_id = max(flattened_ids) + 1 if len(flattened_ids) > 0 else 1
+                
+                new_elem_tags = list(range(next_elem_id, next_elem_id + len(new_triangles)))
+                new_elem_node_tags = [node for tri in new_triangles for node in tri]
+
+                gmsh.model.mesh.addElements(
+                    dim=2,
+                    tag=1,
+                    elementTypes=[2],
+                    elementTags=[new_elem_tags],
+                    nodeTags=[new_elem_node_tags]
+                )
+
+            # Write the result
+            gmsh.write(output_file)
+            
+            return True, f"Successfully closed {len(boundary_edges)} open edges using GMSH method"
+
+        except Exception as e:
+            return False, f"Error during GMSH processing: {str(e)}"
+        
+        finally:
+            self._finalize_gmsh()
 
     def _extrude_edges_to_xz(self, mesh: 'trimesh.Trimesh') -> 'trimesh.Trimesh':
         """

@@ -15,3 +15,4 @@ Future Plan
 
 Change uitl to a package/module/library
 
+Need to remove functionalities from blenderHullProperties.py
