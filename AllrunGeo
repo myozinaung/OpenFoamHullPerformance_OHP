@@ -36,14 +36,12 @@ rho_water=998
 # scale_factor=$(echo "1/31.599" | bc -l)
 
 
-python3 utilities/blenderHullProperties.py $hull --draft $draft --rho_water $rho_water
+# python3 utilities/blenderHullProperties.py $hull --draft $draft --rho_water $rho_water
 # python3 utilities/blenderHullProperties.py $hull --draft $draft --rho_water $rho_water --scale $scale_factor --move_origin
 # python3 utilities/blenderHullProperties.py $hull --draft $draft --rho_water $rho_water --trim_angle $pre_trim_angle --sinkage $pre_sinkage --scale $scale_factor
 # python3 utilities/blenderHullProperties.py $hull --draft $draft --rho_water $rho_water --trim_angle $pre_trim_angle --sinkage $pre_sinkage --CoG 0.586 0 0.156
 
-# Copy hull surface from resources folder
-mkdir -p constant/triSurface
-cp geometry/hull.stl constant/triSurface/
+
 
 #------------------------------------------------------------------------------
 # sudo update-alternatives --config python3

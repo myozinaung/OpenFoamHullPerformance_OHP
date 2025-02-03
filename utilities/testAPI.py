@@ -4,15 +4,16 @@ from shutil import copyfile
 # Create an instance
 processor = GeometryProcessor()
 
-input_file = "geometry/kcs.brep"
+input_file = "geometry/dtc.igs"
+# input_file = "geometry/hullDTC.stl"
 # input_file = "geometry/hull.stl"
 base_STL = "geometry/hull.stl"
 underwater_STL = "geometry/hullUnderwater.stl"
 
-scale = 1/40
+scale = 0.001*1/59.4
 rotate = (0, 0, 0)
 translate = (0, 0, 0)
-draft = 0.27
+draft = 0.244 # after scaling and transformation
 
 # scale = 1/40
 # rotate = (180, 0, 180)
@@ -22,9 +23,10 @@ draft = 0.27
 rho_water = 998
 
 # Configuration flags
-do_mirror = False
-do_close_openings = True
 do_transform = True
+do_mirror = False
+do_close_openings = False
+
 
 # Convert a file if input file is not STL    
 if not input_file.lower().endswith('.stl'):

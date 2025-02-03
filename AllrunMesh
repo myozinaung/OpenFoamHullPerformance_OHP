@@ -10,7 +10,11 @@ export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 touch case.foam
 #------------------------------------------------------------------------------#
 
-./AllrunGeo
+# ./AllrunGeo
+
+# Copy hull surface from resources folder
+mkdir -p constant/triSurface
+cp geometry/hull.stl constant/triSurface/
 
 # Generate hull.eMesh file (edge features)
 runApplication surfaceFeatureExtract

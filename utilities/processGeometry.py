@@ -814,7 +814,7 @@ class GeometryProcessor:
             VCG = Depth * 0.65      # Approximate Vertical Center of Gravity
 
             # Get volume from clipped (underwater) portion
-            vol = clipped_mesh.volume
+            vol = abs(clipped_mesh.volume)  # Ensure volume is positive
 
             # Calculate mass (assuming half hull)
             mass = vol * rho_water / 2
