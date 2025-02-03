@@ -139,7 +139,21 @@ class GeometryProcessor:
 
             logger.debug(f"Applied transformation: scale={scale}, mirror={mirror}")
 
-            return True, f"Successfully converted {input_file} to {output_file}"
+            # Load the STL file using trimesh to get bounding box and dimensions
+            import trimesh
+            mesh = trimesh.load_mesh(output_file)
+            bbox = mesh.bounds
+            dimensions = mesh.extents
+
+            logger.info(f"Bounding box: {bbox}")
+            logger.info(f"Model dimensions: {dimensions}")
+
+            return True, (
+                f"Successfully converted {input_file} to {output_file}. "
+                f"Bounding box: min [{bbox[0][0]:.2f}, {bbox[0][1]:.2f}, {bbox[0][2]:.2f}], "
+                f"max [{bbox[1][0]:.2f}, {bbox[1][1]:.2f}, {bbox[1][2]:.2f}]. "
+                f"Model dimensions: [{dimensions[0]:.2f}, {dimensions[1]:.2f}, {dimensions[2]:.2f}]"
+            )
 
         except Exception as e:
             logger.error(f"STL conversion failed: {str(e)}", exc_info=True)
@@ -556,7 +570,8 @@ class GeometryProcessor:
                 "volume": mesh.volume,
                 "area": mesh.area,
                 "center_mass": mesh.center_mass,
-                "bounds": mesh.bounds
+                "bounds": mesh.bounds,
+                "dimensions": mesh.extents
             }
 
             # Handle scaling
@@ -587,14 +602,23 @@ class GeometryProcessor:
                 "volume": mesh.volume,
                 "area": mesh.area,
                 "center_mass": mesh.center_mass,
-                "bounds": mesh.bounds
+                "bounds": mesh.bounds,
+                "dimensions": mesh.extents
             }
 
             status_message = (
                 f"Processing complete:\n"
                 f"Initial watertight: {initial_state['is_watertight']} → Final: {final_state['is_watertight']}\n"
                 f"Volume: {initial_state['volume']:.2f} → {final_state['volume']:.2f}\n"
-                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}"
+                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}\n"
+                f"Initial bounding box:\n"
+                f"  Min: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][0])}]\n"
+                f"  Max: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][1])}]\n"
+                f"Final bounding box:\n"
+                f"  Min: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][0])}]\n"
+                f"  Max: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][1])}]\n"
+                f"Initial dimensions (x,y,z): [{', '.join(f'{x:.2f}' for x in initial_state['dimensions'])}]\n"
+                f"Final dimensions (x,y,z): [{', '.join(f'{x:.2f}' for x in final_state['dimensions'])}]"
             )
 
             return True, f"Successfully transformed mesh. {status_message}"
