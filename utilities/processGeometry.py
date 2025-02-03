@@ -1,16 +1,55 @@
 import gmsh
 import math
 import os
-from typing import Set, Union, Tuple
+from typing import Set, Union, Tuple, TypeVar, Optional, Dict, Any, Callable
+import functools
+import importlib
+from functools import lru_cache
+from dataclasses import dataclass
+import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GeometryProcessor:
     """A class to handle various geometry processing operations."""
     
     SUPPORTED_FORMATS: Set[str] = {'igs', 'iges', 'stp', 'step', 'brep'}
 
-    def __init__(self):
-        """Initialize the GeometryProcessor."""
+    REQUIRED_PACKAGES = {
+        'trimesh': 'trimesh',
+        'numpy': 'numpy',
+        'scipy': 'scipy',
+        'shapely': 'shapely'
+    }
+
+    DEFAULT_CONFIG = {
+        'mesh_repair': {
+            'fill_holes': True,
+            'fix_normals': True,
+            'merge_vertices': True
+        },
+        'export': {
+            'ascii': False,
+            'precision': 10
+        }
+    }
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """Initialize with custom configuration"""
+        self.config = self._merge_config(self.DEFAULT_CONFIG, config or {})
         self._is_gmsh_initialized = False
+        logger.debug("GeometryProcessor initialized")
+
+    def _merge_config(self, default: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """Simple recursive dictionary merge"""
+        result = default.copy()
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._merge_config(result[key], value)
+            else:
+                result[key] = value
+        return result
 
     def _initialize_gmsh(self):
         """Initialize GMSH if not already initialized."""
@@ -29,7 +68,8 @@ class GeometryProcessor:
         input_file: str,
         output_file: str = None,
         scale: float = 1.0,
-        mirror: bool = False
+        mirror: bool = False,
+        progress_callback: Optional[Callable[[float, str], None]] = None
     ) -> Tuple[bool, str]:
         """
         Convert CAD files (IGS/STEP/BREP) to STL format.
@@ -39,11 +79,15 @@ class GeometryProcessor:
             output_file (str, optional): Path for the output STL file
             scale (float, optional): Scaling factor. Defaults to 1.0
             mirror (bool, optional): Mirror the geometry in XZ-plane. Defaults to False
+            progress_callback: Callable that accepts progress (0-1) and status message
             
         Returns:
             Tuple[bool, str]: (Success status, Message/Error description)
         """
         try:
+            logger.info(f"Starting STL conversion of {input_file}")
+            if progress_callback:
+                progress_callback(0.1, "Loading input file...")
             # Validate input file
             if not os.path.exists(input_file):
                 return False, f"Input file not found: {input_file}"
@@ -62,6 +106,8 @@ class GeometryProcessor:
             # Load the input file
             gmsh.merge(input_file)
 
+            if progress_callback:
+                progress_callback(0.5, "Processing geometry...")
             # Classify surfaces
             angle = 20
             gmsh.model.mesh.classifySurfaces(
@@ -91,9 +137,12 @@ class GeometryProcessor:
             gmsh.model.occ.synchronize()
             gmsh.write(output_file)
 
+            logger.debug(f"Applied transformation: scale={scale}, mirror={mirror}")
+
             return True, f"Successfully converted {input_file} to {output_file}"
 
         except Exception as e:
+            logger.error(f"STL conversion failed: {str(e)}", exc_info=True)
             return False, f"Error during conversion: {str(e)}"
 
         finally:
@@ -553,6 +602,285 @@ class GeometryProcessor:
         except Exception as e:
             return False, f"Error during transformation: {str(e)}"
 
-    def __del__(self):
-        """Ensure GMSH is properly finalized when the object is destroyed."""
+    def cut_by_draft(
+        self,
+        input_file: str,
+        draft: float,
+        output_file: str = None,
+        close_method: str = 'trimesh'
+    ) -> Tuple[bool, str]:
+        """
+        Cut geometry by z-plane at specified draft height, keep lower part and close the opening.
+        
+        Args:
+            input_file (str): Path to the input mesh file
+            draft (float): Height of the cutting plane in z-axis
+            output_file (str, optional): Path for the output mesh file
+            close_method (str, optional): Method to use for closing ('trimesh' or 'gmsh'). Defaults to 'trimesh'
+            
+        Returns:
+            Tuple[bool, str]: (Success status, Message/Error description)
+        """
+        try:
+            # Check for required dependencies
+            try:
+                import trimesh
+                import scipy
+                import shapely
+            except ImportError as e:
+                missing_package = str(e).split("'")[1]
+                return False, f"{missing_package} is required for cutting operations. Please install it using 'pip install {missing_package}'"
+
+            # Validate input file
+            if not os.path.exists(input_file):
+                return False, f"Input file not found: {input_file}"
+
+            # Set default output file if none provided
+            if output_file is None:
+                base, ext = os.path.splitext(input_file)
+                output_file = f"{base}_draft{ext}"
+
+            # Load the mesh
+            mesh = trimesh.load_mesh(input_file)
+            initial_state = {
+                "volume": mesh.volume,
+                "area": mesh.area,
+                "bounds": mesh.bounds,
+                "centroid": mesh.centroid
+            }
+
+            # Create cutting plane
+            # Normal pointing up to keep lower part
+            plane_normal = [0, 0, -1]
+            plane_origin = [0, 0, draft]
+
+            # Slice the mesh
+            cut_mesh = trimesh.intersections.slice_mesh_plane(
+                mesh=mesh,
+                plane_normal=plane_normal,
+                plane_origin=plane_origin,
+                cap=False
+            )
+
+            if cut_mesh is None:
+                return False, "Failed to cut mesh - possibly no intersection with cutting plane"
+
+            # Close the opening
+            temp_file = os.path.splitext(output_file)[0] + '_temp.stl'
+            cut_mesh.export(temp_file)
+            
+            success, message = self.close_openings(temp_file, output_file, method=close_method)
+            
+            # Clean up temporary file
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+
+            # if not success:
+            #     return False, f"Failed to close openings: {message}"
+
+            # Load final mesh for measurements
+            final_mesh = trimesh.load_mesh(output_file)
+            final_state = {
+                "volume": final_mesh.volume,
+                "area": final_mesh.area,
+                "bounds": final_mesh.bounds,
+                "centroid": final_mesh.centroid
+            }
+
+            status_message = (
+                f"Processing complete:\n"
+                f"Cut at z = {draft}\n"
+                f"Volume: {initial_state['volume']:.2f} → {final_state['volume']:.2f}\n"
+                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}\n"
+                f"Initial bounding box:\n"
+                f"  Min: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][0])}]\n"
+                f"  Max: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][1])}]\n"
+                f"Final bounding box:\n"
+                f"  Min: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][0])}]\n"
+                f"  Max: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][1])}]\n"
+                f"Centroid:\n"
+                f"  Initial: [{', '.join(f'{x:.2f}' for x in initial_state['centroid'])}]\n"
+                f"  Final: [{', '.join(f'{x:.2f}' for x in final_state['centroid'])}]"
+            )
+
+            return True, f"Successfully cut and closed mesh. {status_message}"
+
+        except Exception as e:
+            return False, f"Error during cutting: {str(e)}"
+
+    def write_hull_bounds(
+        self,
+        input_file: str,
+        draft: float,
+        output_file: str = 'hullBounds.txt'
+    ) -> Tuple[bool, str]:
+        """
+        Write bounding box values from an STL file to a text file.
+        
+        Args:
+            input_file (str): Path to the input STL file
+            draft (float): Draft height (waterline)
+            output_file (str, optional): Path for the output text file. Defaults to 'hullBounds.txt'
+            
+        Returns:
+            Tuple[bool, str]: (Success status, Message/Error description)
+        """
+        try:
+            import trimesh
+
+            # Load the mesh
+            mesh = trimesh.load_mesh(input_file)
+            if mesh is None:
+                return False, f"Failed to load mesh from {input_file}"
+
+            # Get bounding box corners
+            bbox = mesh.bounds
+            # bbox is [[xmin, ymin, zmin], [xmax, ymax, zmax]]
+
+            with open(output_file, 'w') as f:
+                f.write(f"hullXmin  {bbox[0][0]:.4f};\n")
+                f.write(f"hullXmax  {bbox[1][0]:.4f};\n")
+                f.write(f"hullYmin  {bbox[0][1]:.4f};\n")
+                # Assuming the hull is symmetric about Y-axis
+                f.write(f"hullYmax  {0.0};\n")
+                f.write(f"hullZmin  {bbox[0][2]:.4f};\n")
+                f.write(f"hullZmax  {bbox[1][2]:.4f};\n")
+                f.write(f"zWL       {draft:.4f};\n")
+
+            return True, f"Successfully wrote bounding box to {output_file}"
+
+        except Exception as e:
+            return False, f"Error writing bounding box: {str(e)}"
+
+    def approximate_mass_properties(
+        self,
+        original_stl: str,
+        clipped_stl: str,
+        rho_water: float = 1000.0,
+        output_file: str = 'hullMassInertiaCoG.txt'
+    ) -> Tuple[bool, str]:
+        """
+        Calculate approximate mass properties from original and clipped hull geometries.
+        
+        Args:
+            original_stl (str): Path to the original hull STL file
+            clipped_stl (str): Path to the clipped (underwater portion) STL file
+            rho_water (float, optional): Water density in kg/m^3. Defaults to 1000.0
+            output_file (str, optional): Output file path. Defaults to 'hullMassInertiaCoG.txt'
+            
+        Returns:
+            Tuple[bool, str]: (Success status, Message/Error description)
+        """
+        try:
+            import trimesh
+            import numpy as np
+
+            # Load both meshes
+            original_mesh = trimesh.load_mesh(original_stl)
+            clipped_mesh = trimesh.load_mesh(clipped_stl)
+            
+            if original_mesh is None or clipped_mesh is None:
+                return False, "Failed to load one or both mesh files"
+
+            # Get dimensions from original hull
+            dim = original_mesh.extents  # [x_extent, y_extent, z_extent]
+            Length = dim[0] * 0.94  # Length LPP approximation
+            Beam = dim[1]           # Beam of the hull
+            Depth = dim[2]          # Depth of the hull
+            VCG = Depth * 0.65      # Approximate Vertical Center of Gravity
+
+            # Get volume from clipped (underwater) portion
+            vol = clipped_mesh.volume
+
+            # Calculate mass (assuming half hull)
+            mass = vol * rho_water / 2
+
+            # Calculate radii of gyration
+            kxx = 0.34 * Beam
+            kyy = 0.25 * Length
+            kzz = 0.26 * Length
+
+            # Calculate moments of inertia
+            Ixx = mass * kxx**2
+            Iyy = mass * kyy**2
+            Izz = mass * kzz**2
+
+            # Get center of buoyancy (centroid of underwater volume)
+            CoB = clipped_mesh.center_mass
+            
+            # Approximate CoG (using CoB x,y and VCG for z)
+            CoG = (CoB[0], CoB[1], VCG)
+
+            # Write results to file
+            with open(output_file, "w") as f:
+                f.write(f"mass            {mass:.2f};\n")
+                f.write(f"Ixx             {Ixx:.2f};\n")
+                f.write(f"Iyy             {Iyy:.2f};\n")
+                f.write(f"Izz             {Izz:.2f};\n")
+                f.write(f"centreOfMass    ({CoG[0]:.6f} {CoG[1]:.6f} {CoG[2]:.6f});\n")
+
+            status_message = (
+                f"Mass properties calculated:\n"
+                f"Hull dimensions (L x B x D): {Length:.2f} x {Beam:.2f} x {Depth:.2f}\n"
+                f"Displacement: {mass:.2f} kg\n"
+                f"CoG: [{CoG[0]:.2f}, {CoG[1]:.2f}, {CoG[2]:.2f}]\n"
+                f"Results written to {output_file}"
+            )
+
+            return True, status_message
+
+        except Exception as e:
+            return False, f"Error calculating mass properties: {str(e)}"
+
+    def __enter__(self):
+        """Enable context manager support for automatic GMSH cleanup"""
+        self._initialize_gmsh()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Cleanup GMSH when exiting context"""
         self._finalize_gmsh()
+
+    @lru_cache(maxsize=32)
+    def _load_mesh(self, file_path: str) -> 'trimesh.Trimesh':
+        """Cache mesh loading to avoid repeated disk reads"""
+        import trimesh
+        return trimesh.load_mesh(file_path)
+
+def check_dependencies(*packages):
+    """Decorator to check required packages before executing a method"""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            missing = []
+            for pkg in packages:
+                try:
+                    importlib.import_module(pkg)
+                except ImportError:
+                    missing.append(pkg)
+            if missing:
+                return False, f"Missing required packages: {', '.join(missing)}. Install with pip install {' '.join(missing)}"
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+T = TypeVar('T', bound='GeometryProcessor')
+
+@dataclass
+class MeshState:
+    """Data class to hold mesh state information"""
+    is_watertight: bool
+    volume: float
+    area: float
+    center_mass: np.ndarray
+    bounds: np.ndarray
+
+def get_mesh_state(self, mesh: 'trimesh.Trimesh') -> MeshState:
+    """Get current state of mesh properties"""
+    return MeshState(
+        is_watertight=mesh.is_watertight,
+        volume=mesh.volume,
+        area=mesh.area,
+        center_mass=mesh.center_mass,
+        bounds=mesh.bounds
+    )

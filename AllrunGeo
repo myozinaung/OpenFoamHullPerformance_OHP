@@ -18,7 +18,7 @@ cd "${0%/*}" || exit                                # Run from this directory
 # rho_water=998
 
 hull="geometry/hull.stl" # preprocessed watertight solid hull
-draft=0.27 
+draft=0.3 
 rho_water=998
 
 # hull="geometry/hull_surface.stl" # preprocessed watertight solid hull

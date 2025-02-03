@@ -374,7 +374,7 @@ addLayersControls
     nLayerIter 50;
 
     // Add layers in multiple passes - gives layers a chance to rotate
-    nOuterIter      6; // improved layers
+    nOuterIter      6; // 3, improved layers
 
     // Max number of iterations after which relaxed meshQuality controls
     // get used. Up to nRelaxIter it uses the settings in meshQualityControls,
