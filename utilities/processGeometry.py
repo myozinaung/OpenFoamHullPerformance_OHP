@@ -938,6 +938,136 @@ class GeometryProcessor:
         except Exception as e:
             return False, f"Error calculating mass properties: {str(e)}"
 
+    def remesh_geometry(
+        self,
+        input_file: str,
+        output_file: str = None,
+        max_hole_size: float = 1000.0,
+        target_edge_length: float = 1.0,
+        iterations: int = 5,
+        min_component_size: int = 100
+    ) -> Tuple[bool, str]:
+        """
+        Remesh and optimize the geometry using PyMeshLab.
+        
+        Args:
+            input_file (str): Path to the input mesh file
+            output_file (str, optional): Path for the output mesh file
+            max_hole_size (float, optional): Maximum area of holes to fill. Defaults to 1000.0
+            target_edge_length (float, optional): Desired average edge length. Defaults to 1.0
+            iterations (int, optional): Number of remeshing iterations. Defaults to 5
+            min_component_size (int, optional): Minimum number of faces for components. Defaults to 100
+            
+        Returns:
+            Tuple[bool, str]: (Success status, Message/Error description)
+        """
+        try:
+            import pymeshlab
+            import trimesh
+
+            # Validate input file
+            if not os.path.exists(input_file):
+                return False, f"Input file not found: {input_file}"
+
+            # Set default output file if none provided
+            if output_file is None:
+                base, ext = os.path.splitext(input_file)
+                output_file = f"{base}_remeshed{ext}"
+
+            # Load initial mesh state for comparison
+            initial_mesh = trimesh.load_mesh(input_file)
+            initial_state = {
+                "vertices": len(initial_mesh.vertices),
+                "faces": len(initial_mesh.faces),
+                "volume": initial_mesh.volume,
+                "area": initial_mesh.area,
+                "is_watertight": initial_mesh.is_watertight
+            }
+
+            # Create a MeshSet and load the mesh
+            ms = pymeshlab.MeshSet()
+            ms.load_new_mesh(input_file)
+
+            # Remove duplicate faces and vertices
+            ms.meshing_remove_duplicate_faces()
+            ms.meshing_remove_duplicate_vertices()
+
+            # Fill/close small holes
+            try:
+                ms.meshing_close_holes(maxholesize=int(max_hole_size))
+            except:
+                # If integer conversion fails, try without maxholesize parameter
+                ms.meshing_close_holes()
+
+            # Get current mesh bounding box to calculate appropriate target length
+            current_mesh = ms.current_mesh()
+            bbox = current_mesh.bounding_box()
+            bbox_diag = ((bbox.max()[0] - bbox.min()[0])**2 + 
+                        (bbox.max()[1] - bbox.min()[1])**2 + 
+                        (bbox.max()[2] - bbox.min()[2])**2)**0.5
+            relative_length = target_edge_length / bbox_diag * 100  # Convert to percentage
+
+            # Perform isotropic explicit remeshing
+            try:
+                ms.meshing_isotropic_explicit_remeshing(
+                    iterations=int(iterations),
+                    targetlen=relative_length
+                )
+            except:
+                # Fallback to default parameters if explicit parameters fail
+                ms.meshing_isotropic_explicit_remeshing()
+
+            # Remove small disconnected components
+            try:
+                ms.meshing_remove_connected_component_by_face_number(
+                    mincomponentsize=int(min_component_size)
+                )
+            except:
+                # Fallback to default parameters if explicit parameters fail
+                ms.meshing_remove_connected_component_by_face_number()
+
+            # Final cleanup
+            ms.meshing_repair_non_manifold_edges()
+            ms.meshing_repair_non_manifold_vertices()
+
+            # Save the result
+            ms.save_current_mesh(output_file)
+            
+            # Create a copy named hull_remeshed.stl
+            hull_remeshed_path = os.path.join(os.path.dirname(output_file), 'hull_remeshed.stl')
+            shutil.copy2(output_file, hull_remeshed_path)
+            logger.info(f"Created copy at: {hull_remeshed_path}")
+
+            # Load final mesh state for comparison
+            final_mesh = trimesh.load_mesh(output_file)
+            final_state = {
+                "vertices": len(final_mesh.vertices),
+                "faces": len(final_mesh.faces),
+                "volume": final_mesh.volume,
+                "area": final_mesh.area,
+                "is_watertight": final_mesh.is_watertight
+            }
+
+            status_message = (
+                f"Remeshing complete:\n"
+                f"Vertices: {self._format_number(initial_state['vertices'])} → "
+                f"{self._format_number(final_state['vertices'])}\n"
+                f"Faces: {self._format_number(initial_state['faces'])} → "
+                f"{self._format_number(final_state['faces'])}\n"
+                f"Volume: {self._format_number(initial_state['volume'])} → "
+                f"{self._format_number(final_state['volume'])}\n"
+                f"Surface area: {self._format_number(initial_state['area'])} → "
+                f"{self._format_number(final_state['area'])}\n"
+                f"Watertight: {initial_state['is_watertight']} → {final_state['is_watertight']}"
+            )
+
+            return True, f"{self.GREEN}Successfully remeshed geometry. {status_message}{self.RESET}"
+
+        except ImportError:
+            return False, "PyMeshLab is required for remeshing. Install with: pip install pymeshlab"
+        except Exception as e:
+            return False, f"Error during remeshing: {str(e)}"
+
     def __enter__(self):
         """Enable context manager support for automatic GMSH cleanup"""
         self._initialize_gmsh()

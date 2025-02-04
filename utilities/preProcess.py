@@ -14,7 +14,7 @@ underwater_STL = "geometry/hullUnderwater.stl"
 scale = 0.001*1/40
 rotate = (0, 0, 0)
 translate = (0, 0, 0)
-draft = 0.244*1000*40 # after scaling and transformation
+draft = 0.27 # after scaling and transformation
 
 # scale = 1/40
 # rotate = (180, 0, 180)
@@ -24,7 +24,7 @@ draft = 0.244*1000*40 # after scaling and transformation
 rho_water = 998
 
 # Configuration flags
-do_transform = False
+do_transform = True
 do_mirror = False
 do_close_openings = True
 
@@ -71,6 +71,15 @@ if do_mirror:
         origin=True       # True to mirror through origin, False to mirror through mesh center
     )
     print(f"{GREEN}Mirror geometry:{RESET}", message)
+
+# # Remesh surface
+# success, message = processor.remesh_geometry(
+#     input_file=base_STL,
+#     output_file=base_STL,
+#     max_hole_size=0.01,
+#     target_edge_length=0.001
+# )
+# print(f"{GREEN}Remesh surface:{RESET}", message)
 
 # Close openings in an STL file
 if do_close_openings:
