@@ -1,6 +1,6 @@
 hullXmin  -6000.0000;
 hullXmax  237844.1562;
-hullYmin  -16122.1934;
+hullYmin  -0.0960;
 hullYmax  0.0;
 hullZmin  -5.5100;
 hullZmax  23500.0000;

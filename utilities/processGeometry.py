@@ -130,6 +130,9 @@ class GeometryProcessor:
                 180 * math.pi / 180.  # curveAngle
             )
 
+            # Recombine into a single surface mesh
+            gmsh.model.mesh.recombine()
+
             # Create volume and set mesh parameters
             gmsh.model.mesh.createGeometry()
             gmsh.option.setNumber("Mesh.Algorithm", 5)
@@ -149,35 +152,56 @@ class GeometryProcessor:
             # Synchronize and repair mesh
             gmsh.model.occ.synchronize()
             
-            # Set repair options
-            gmsh.option.setNumber("Geometry.Tolerance", 1e-8)  # Geometrical tolerance
-            gmsh.option.setNumber("Mesh.MeshSizeFactor", 1.0)  # Global mesh size factor
+            # # Set repair options
+            # gmsh.option.setNumber("Geometry.Tolerance", 1e-8)  # Geometrical tolerance
+            # gmsh.option.setNumber("Mesh.MeshSizeFactor", 1.0)  # Global mesh size factor
             
-            # Additional gap closing options
-            gmsh.option.setNumber("Geometry.AutoCoherence", 1)  # Automatically fix small gaps
-            gmsh.option.setNumber("Geometry.Tolerance", 1e-4)  # Increase tolerance for gap closing
-            gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.1)  # More aggressive overlap detection
-            gmsh.option.setNumber("Mesh.MinimumCirclePoints", 12)  # Better circular edge discretization
+            # # Additional gap closing options
+            # gmsh.option.setNumber("Geometry.AutoCoherence", 1)  # Automatically fix small gaps
+            # gmsh.option.setNumber("Geometry.Tolerance", 1e-4)  # Increase tolerance for gap closing
+            # gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.1)  # More aggressive overlap detection
+            # gmsh.option.setNumber("Mesh.MinimumCirclePoints", 12)  # Better circular edge discretization
             
-            # Repair operations
-            gmsh.model.mesh.removeDuplicateNodes()  # Remove duplicate nodes
-            gmsh.option.setNumber("Mesh.ScalingFactor", 1.0)  # Reset scaling
-            gmsh.model.mesh.createTopology()  # Create topology from mesh
-            gmsh.model.mesh.classifySurfaces(math.pi)  # Classify surfaces with angle tolerance
-            gmsh.model.mesh.createGeometry()  # Create geometry from topology
+            # # Get all surfaces and attempt to fuse them
+            # surfaces = gmsh.model.getEntities(2)  # Get all 2D entities (surfaces)
+            # if len(surfaces) > 1:
+            #     # Attempt to fuse all surfaces into one
+            #     gmsh.model.occ.fuse(surfaces[:1], surfaces[1:])
+            #     gmsh.model.occ.synchronize()
             
-            # Additional repair options for gaps
-            gmsh.option.setNumber("Mesh.StlOneSolidPerSurface", 1)  # Create one solid per surface
-            gmsh.option.setNumber("Mesh.StlRemoveDuplicateTriangles", 1)  # Remove duplicate triangles
-            gmsh.option.setNumber("Mesh.Algorithm", 5)  # Delaunay for surface meshing
-            # gmsh.option.setNumber("Mesh.RemoveDuplicateNodes", 1)  # Remove duplicate nodes
-            gmsh.option.setNumber("Mesh.Binary", 0)  # ASCII output for better precision
+            # # Heal shapes to fix small gaps and inconsistencies
+            # # gmsh.model.occ.healShapes()
+            # gmsh.model.occ.synchronize()
             
-            # Generate and optimize mesh with additional steps
-            gmsh.model.mesh.generate(2)  # Generate 2D mesh
-            gmsh.model.mesh.optimize("Netgen")  # Initial optimization
-            gmsh.model.mesh.optimize("Laplace2D")  # Smooth mesh
-            gmsh.model.mesh.optimize("Relocate2D")  # Relocate vertices for better quality
+            # # Remove small edges and faces
+            # # gmsh.option.setNumber("Geometry.OCCMinimumEdgeLength", 1e-4)  # Minimum edge length
+            # # gmsh.option.setNumber("Geometry.OCCMinimumFaceArea", 1e-6)   # Minimum face area
+            
+            # # Repair operations
+            # gmsh.model.mesh.removeDuplicateNodes()  # Remove duplicate nodes
+            # gmsh.option.setNumber("Mesh.ScalingFactor", 1.0)  # Reset scaling
+            # gmsh.model.mesh.createTopology()  # Create topology from mesh
+            # gmsh.model.mesh.classifySurfaces(math.pi)  # Classify surfaces with angle tolerance
+            # gmsh.model.mesh.createGeometry()  # Create geometry from topology
+            
+            # # Additional repair options for gaps
+            # gmsh.option.setNumber("Mesh.StlOneSolidPerSurface", 1)  # Create one solid per surface
+            # gmsh.option.setNumber("Mesh.StlRemoveDuplicateTriangles", 1)  # Remove duplicate triangles
+            # gmsh.option.setNumber("Mesh.Algorithm", 5)  # Delaunay for surface meshing
+            # gmsh.option.setNumber("Mesh.Binary", 0)  # ASCII output for better precision
+            
+            # # Generate and optimize mesh with additional steps
+            # gmsh.model.mesh.generate(2)  # Generate 2D mesh
+            
+            # # More aggressive mesh optimization
+            # gmsh.option.setNumber("Mesh.OptimizeThreshold", 0.3)  # Lower threshold for optimization
+            # gmsh.model.mesh.optimize("Netgen", niter=10)  # More iterations of Netgen optimization
+            # gmsh.model.mesh.optimize("Laplace2D", niter=10)  # More iterations of Laplace smoothing
+            # gmsh.model.mesh.optimize("Relocate2D")  # Relocate vertices for better quality
+            
+            # # Final coherence check and repair
+            # gmsh.model.occ.removeAllDuplicates()
+            # gmsh.model.occ.synchronize()
             
             # Write the repaired mesh
             gmsh.write(output_file)

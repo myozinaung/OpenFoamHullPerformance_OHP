@@ -39,7 +39,7 @@ if not input_file.lower().endswith('.stl'):
         input_file=input_file,
         output_file=base_STL,
         scale=1.0, # scale is applied in transform_geometry
-        mirror=True # gmesh mirror takes long time to run (due to Union?)
+        mirror=False # gmesh mirror takes long time to run (due to Union?)
     )
     print(f"{BLUE}Convert to STL:{RESET}", message)
 else:
