@@ -52,12 +52,6 @@ runApplication -s beforeSnappy checkMesh -allGeometry -allTopology
 runApplication -s forSnappyHexMesh decomposePar # decompose to run snappyHexMesh in parallel
 runParallel snappyHexMesh -overwrite
 
-# To layer one-by-one, layer Mode needs to be adjusted
-# runParallel -s main snappyHexMesh -overwrite # change nLayer to 1 in ParametersMesh
-# runParallel -s layer2 snappyHexMesh -dict system/snappyHexMeshDictLayerOnly -overwrite
-# runParallel -s layer3 snappyHexMesh -dict system/snappyHexMeshDictLayerOnly -overwrite
-
-
 runParallel redistributePar -reconstruct -constant -overwrite # (not work in OF10)
 
 rm -rf processor* # clean decomposed mesh not to interfere with interFoam decomposition

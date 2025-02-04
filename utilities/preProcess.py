@@ -4,16 +4,17 @@ from shutil import copyfile
 # Create an instance
 processor = GeometryProcessor()
 
-input_file = "geometry/dtc.igs"
+input_file = "geometry/kcs.igs"
 # input_file = "geometry/hullDTC.stl"
 # input_file = "geometry/hull.stl"
 base_STL = "geometry/hull.stl"
 underwater_STL = "geometry/hullUnderwater.stl"
 
-scale = 0.001*1/59.4
+# scale = 0.001*1/59.4
+scale = 0.001*1/40
 rotate = (0, 0, 0)
 translate = (0, 0, 0)
-draft = 0.244 # after scaling and transformation
+draft = 0.244*1000*40 # after scaling and transformation
 
 # scale = 1/40
 # rotate = (180, 0, 180)
@@ -23,10 +24,14 @@ draft = 0.244 # after scaling and transformation
 rho_water = 998
 
 # Configuration flags
-do_transform = True
+do_transform = False
 do_mirror = False
-do_close_openings = False
+do_close_openings = True
 
+# Define color codes
+GREEN = '\033[92m'
+BLUE = '\033[94m'
+RESET = '\033[0m'
 
 # Convert a file if input file is not STL    
 if not input_file.lower().endswith('.stl'):
@@ -34,9 +39,9 @@ if not input_file.lower().endswith('.stl'):
         input_file=input_file,
         output_file=base_STL,
         scale=1.0, # scale is applied in transform_geometry
-        mirror=False # gmesh mirror takes long time to run (due to Union?)
+        mirror=True # gmesh mirror takes long time to run (due to Union?)
     )
-    print("Convert to STL: ", message)
+    print(f"{BLUE}Convert to STL:{RESET}", message)
 else:
     # If input is already STL, copy it to base_STL
     try:
@@ -44,7 +49,7 @@ else:
         success, message = True, "File copied successfully"
     except Exception as e:
         success, message = False, f"Error copying file: {str(e)}"
-    print("Copy STL file: ", message)
+    print(f"{BLUE}Copy STL file:{RESET}", message)
 
 # Transform geometry
 if do_transform:
@@ -55,7 +60,7 @@ if do_transform:
         translate=translate,
         rotate=rotate # y-axis +ive bow down
     )
-    print("Transform geometry: ", message)
+    print(f"{GREEN}Transform geometry:{RESET}", message)
 
 # Mirror a mesh along the y-axis
 if do_mirror:
@@ -65,7 +70,7 @@ if do_mirror:
         mirror_axis='y',  # can be 'x', 'y', or 'z'
         origin=True       # True to mirror through origin, False to mirror through mesh center
     )
-    print("Mirror geometry: ", message)
+    print(f"{GREEN}Mirror geometry:{RESET}", message)
 
 # Close openings in an STL file
 if do_close_openings:
@@ -74,7 +79,7 @@ if do_close_openings:
         output_file=base_STL,
         method='trimesh' # gmsh, trimesh (faster)
     )
-    print("Close openings: ", message)
+    print(f"{GREEN}Close openings:{RESET}", message)
 
 
 
@@ -84,7 +89,7 @@ success, message = processor.write_hull_bounds(
     draft=draft,
     output_file="hullBounds.txt"
 )
-print("Write hull bounds: ", message)
+print(f"{BLUE}Write hull bounds:{RESET}", message)
 
 # Cut by draft
 success, message = processor.cut_by_draft(
@@ -93,7 +98,7 @@ success, message = processor.cut_by_draft(
     output_file=underwater_STL,
     close_method="trimesh"
 )
-print("Cut by draft: ", message)
+print(f"{BLUE}Cut by draft:{RESET}", message)
 
 # Approximate mass properties
 success, message = processor.approximate_mass_properties(
@@ -102,4 +107,4 @@ success, message = processor.approximate_mass_properties(
     rho_water=rho_water,  # seawater density
     output_file="hullMassInertiaCoG.txt"
 )
-print("Approximate mass properties: ", message)
+print(f"{BLUE}Approximate mass properties:{RESET}", message)

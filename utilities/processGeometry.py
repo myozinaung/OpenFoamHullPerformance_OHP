@@ -8,6 +8,7 @@ from functools import lru_cache
 from dataclasses import dataclass
 import numpy as np
 import logging
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,12 @@ class GeometryProcessor:
             'precision': 10
         }
     }
+
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    CYAN = "\033[96m"
+    RED = "\033[91m"
+    RESET = "\033[0m"
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize with custom configuration"""
@@ -108,6 +115,12 @@ class GeometryProcessor:
 
             if progress_callback:
                 progress_callback(0.5, "Processing geometry...")
+
+            # Join surfaces before classification
+            gmsh.model.occ.synchronize()
+            # gmsh.model.occ.removeAllDuplicates()
+            # gmsh.model.occ.healShapes() # causing problems
+            
             # Classify surfaces
             angle = 20
             gmsh.model.mesh.classifySurfaces(
@@ -133,9 +146,46 @@ class GeometryProcessor:
                 gmsh.model.occ.mirror(mirrored_entities, 0, 1, 0, 0)
                 gmsh.model.occ.fuse(entities, mirrored_entities)
 
-            # Synchronize and save
+            # Synchronize and repair mesh
             gmsh.model.occ.synchronize()
+            
+            # Set repair options
+            gmsh.option.setNumber("Geometry.Tolerance", 1e-8)  # Geometrical tolerance
+            gmsh.option.setNumber("Mesh.MeshSizeFactor", 1.0)  # Global mesh size factor
+            
+            # Additional gap closing options
+            gmsh.option.setNumber("Geometry.AutoCoherence", 1)  # Automatically fix small gaps
+            gmsh.option.setNumber("Geometry.Tolerance", 1e-4)  # Increase tolerance for gap closing
+            gmsh.option.setNumber("Mesh.AngleToleranceFacetOverlap", 0.1)  # More aggressive overlap detection
+            gmsh.option.setNumber("Mesh.MinimumCirclePoints", 12)  # Better circular edge discretization
+            
+            # Repair operations
+            gmsh.model.mesh.removeDuplicateNodes()  # Remove duplicate nodes
+            gmsh.option.setNumber("Mesh.ScalingFactor", 1.0)  # Reset scaling
+            gmsh.model.mesh.createTopology()  # Create topology from mesh
+            gmsh.model.mesh.classifySurfaces(math.pi)  # Classify surfaces with angle tolerance
+            gmsh.model.mesh.createGeometry()  # Create geometry from topology
+            
+            # Additional repair options for gaps
+            gmsh.option.setNumber("Mesh.StlOneSolidPerSurface", 1)  # Create one solid per surface
+            gmsh.option.setNumber("Mesh.StlRemoveDuplicateTriangles", 1)  # Remove duplicate triangles
+            gmsh.option.setNumber("Mesh.Algorithm", 5)  # Delaunay for surface meshing
+            # gmsh.option.setNumber("Mesh.RemoveDuplicateNodes", 1)  # Remove duplicate nodes
+            gmsh.option.setNumber("Mesh.Binary", 0)  # ASCII output for better precision
+            
+            # Generate and optimize mesh with additional steps
+            gmsh.model.mesh.generate(2)  # Generate 2D mesh
+            gmsh.model.mesh.optimize("Netgen")  # Initial optimization
+            gmsh.model.mesh.optimize("Laplace2D")  # Smooth mesh
+            gmsh.model.mesh.optimize("Relocate2D")  # Relocate vertices for better quality
+            
+            # Write the repaired mesh
             gmsh.write(output_file)
+          
+            # Create a copy named hull_convert.stl
+            hull_convert_path = os.path.join(os.path.dirname(output_file), 'hull_convert.stl')
+            shutil.copy2(output_file, hull_convert_path)            
+            logger.info(f"Created copy at: {hull_convert_path}")
 
             logger.debug(f"Applied transformation: scale={scale}, mirror={mirror}")
 
@@ -220,6 +270,14 @@ class GeometryProcessor:
             if not modified_mesh.is_watertight:
                 # Try additional repairs
                 trimesh.repair.fill_holes(modified_mesh)
+                trimesh.repair.fix_normals(modified_mesh)
+                trimesh.repair.fix_inversion(modified_mesh)
+                trimesh.repair.fix_winding(modified_mesh)
+                trimesh.repair.broken_faces(modified_mesh)
+                modified_mesh.remove_duplicate_faces()
+                modified_mesh.remove_degenerate_faces()
+                modified_mesh.remove_infinite_values()
+                modified_mesh.merge_vertices(merge_tex=True)
                 modified_mesh.process()
 
             # Export the result
@@ -237,14 +295,14 @@ class GeometryProcessor:
             status_message = (
                 f"Processing complete:\n"
                 f"Initial watertight: {initial_state['is_watertight']} → Final: {final_state['is_watertight']}\n"
-                f"Volume: {initial_state['volume']:.2f} → {final_state['volume']:.2f}\n"
-                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}"
+                f"Volume: {self._format_number(initial_state['volume'])} → {self._format_number(final_state['volume'])}\n"
+                f"Surface area: {self._format_number(initial_state['area'])} → {self._format_number(final_state['area'])}"
             )
 
             if not modified_mesh.is_watertight:
-                return False, f"Warning: Mesh is still not watertight. {status_message}"
+                return False, f"{self.YELLOW}Warning: Mesh is still not watertight. {status_message}{self.RESET}"
             
-            return True, f"Successfully created watertight mesh. {status_message}"
+            return True, f"{self.GREEN}Successfully created watertight mesh. {status_message}{self.RESET}"
 
         except Exception as e:
             return False, f"Error during mesh processing: {str(e)}"
@@ -515,14 +573,14 @@ class GeometryProcessor:
 
             status_message = (
                 f"Mirroring complete:\n"
-                f"Volume: {initial_state['volume']:.2f} → {final_state['volume']:.2f}\n"
-                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}\n"
-                f"Center of mass: [{', '.join(f'{x:.2f}' for x in final_state['center_mass'])}]\n"
-                f"Bounds: min [{', '.join(f'{x:.2f}' for x in final_state['bounds'][0])}], "
-                f"max [{', '.join(f'{x:.2f}' for x in final_state['bounds'][1])}]"
+                f"Volume: {self._format_number(initial_state['volume'])} → {self._format_number(final_state['volume'])}\n"
+                f"Surface area: {self._format_number(initial_state['area'])} → {self._format_number(final_state['area'])}\n"
+                f"Center of mass: {self._format_vector(final_state['center_mass'])}\n"
+                f"Bounds: min {self._format_vector(final_state['bounds'][0])}, "
+                f"max {self._format_vector(final_state['bounds'][1])}"
             )
 
-            return True, f"Successfully mirrored mesh along {mirror_axis}-axis. {status_message}"
+            return True, f"{self.GREEN}Successfully mirrored mesh along {mirror_axis}-axis. {status_message}{self.RESET}"
 
         except Exception as e:
             return False, f"Error during mirroring: {str(e)}"
@@ -609,19 +667,19 @@ class GeometryProcessor:
             status_message = (
                 f"Processing complete:\n"
                 f"Initial watertight: {initial_state['is_watertight']} → Final: {final_state['is_watertight']}\n"
-                f"Volume: {initial_state['volume']:.2f} → {final_state['volume']:.2f}\n"
-                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}\n"
+                f"Volume: {self._format_number(initial_state['volume'])} → {self._format_number(final_state['volume'])}\n"
+                f"Surface area: {self._format_number(initial_state['area'])} → {self._format_number(final_state['area'])}\n"
                 f"Initial bounding box:\n"
-                f"  Min: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][0])}]\n"
-                f"  Max: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][1])}]\n"
+                f"  Min: {self._format_vector(initial_state['bounds'][0])}\n"
+                f"  Max: {self._format_vector(initial_state['bounds'][1])}\n"
                 f"Final bounding box:\n"
-                f"  Min: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][0])}]\n"
-                f"  Max: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][1])}]\n"
-                f"Initial dimensions (x,y,z): [{', '.join(f'{x:.2f}' for x in initial_state['dimensions'])}]\n"
-                f"Final dimensions (x,y,z): [{', '.join(f'{x:.2f}' for x in final_state['dimensions'])}]"
+                f"  Min: {self._format_vector(final_state['bounds'][0])}\n"
+                f"  Max: {self._format_vector(final_state['bounds'][1])}\n"
+                f"Initial dimensions (x,y,z): {self._format_vector(initial_state['dimensions'])}\n"
+                f"Final dimensions (x,y,z): {self._format_vector(final_state['dimensions'])}"
             )
 
-            return True, f"Successfully transformed mesh. {status_message}"
+            return True, f"{self.GREEN}Successfully transformed mesh. {status_message}{self.RESET}"
 
         except Exception as e:
             return False, f"Error during transformation: {str(e)}"
@@ -714,17 +772,17 @@ class GeometryProcessor:
             status_message = (
                 f"Processing complete:\n"
                 f"Cut at z = {draft}\n"
-                f"Volume: {initial_state['volume']:.2f} → {final_state['volume']:.2f}\n"
-                f"Surface area: {initial_state['area']:.2f} → {final_state['area']:.2f}\n"
+                f"Volume: {self._format_number(initial_state['volume'])} → {self._format_number(final_state['volume'])}\n"
+                f"Surface area: {self._format_number(initial_state['area'])} → {self._format_number(final_state['area'])}\n"
                 f"Initial bounding box:\n"
-                f"  Min: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][0])}]\n"
-                f"  Max: [{', '.join(f'{x:.2f}' for x in initial_state['bounds'][1])}]\n"
+                f"  Min: {self._format_vector(initial_state['bounds'][0])}\n"
+                f"  Max: {self._format_vector(initial_state['bounds'][1])}\n"
                 f"Final bounding box:\n"
-                f"  Min: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][0])}]\n"
-                f"  Max: [{', '.join(f'{x:.2f}' for x in final_state['bounds'][1])}]\n"
+                f"  Min: {self._format_vector(final_state['bounds'][0])}\n"
+                f"  Max: {self._format_vector(final_state['bounds'][1])}\n"
                 f"Centroid:\n"
-                f"  Initial: [{', '.join(f'{x:.2f}' for x in initial_state['centroid'])}]\n"
-                f"  Final: [{', '.join(f'{x:.2f}' for x in final_state['centroid'])}]"
+                f"  Initial: {self._format_vector(initial_state['centroid'])}\n"
+                f"  Final: {self._format_vector(final_state['centroid'])}"
             )
 
             return True, f"Successfully cut and closed mesh. {status_message}"
@@ -845,13 +903,13 @@ class GeometryProcessor:
 
             status_message = (
                 f"Mass properties calculated:\n"
-                f"Hull dimensions (L x B x D): {Length:.2f} x {Beam:.2f} x {Depth:.2f}\n"
-                f"Displacement: {mass:.2f} kg\n"
-                f"CoG: [{CoG[0]:.2f}, {CoG[1]:.2f}, {CoG[2]:.2f}]\n"
+                f"Hull dimensions (L x B x D): {self._format_vector([Length, Beam, Depth])}\n"
+                f"Displacement: {self._format_number(mass)} kg\n"
+                f"CoG: {self._format_vector(CoG)}\n"
                 f"Results written to {output_file}"
             )
 
-            return True, status_message
+            return True, f"{self.GREEN}{status_message}{self.RESET}"
 
         except Exception as e:
             return False, f"Error calculating mass properties: {str(e)}"
@@ -870,6 +928,14 @@ class GeometryProcessor:
         """Cache mesh loading to avoid repeated disk reads"""
         import trimesh
         return trimesh.load_mesh(file_path)
+
+    def _format_number(self, num: float) -> str:
+        """Format number with cyan color"""
+        return f"{self.CYAN}{num:.2f}{self.RESET}"
+
+    def _format_vector(self, vec) -> str:
+        """Format vector of numbers with cyan color"""
+        return f"[{', '.join(self._format_number(x) for x in vec)}]"
 
 def check_dependencies(*packages):
     """Decorator to check required packages before executing a method"""
