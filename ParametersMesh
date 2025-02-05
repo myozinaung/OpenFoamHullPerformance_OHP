@@ -136,8 +136,8 @@ nCellsBetweenLevels       3;
 // 3. REGION Refinement (region around hull) always 3D
 refineRegionDistance1     #eval{0.2*$dHullY};     // [m] distance from hull surface
 refineRegionDistance2     #eval{0.4*$dHullY};     // [m] distance from hull surface
-// regionRefinementLevels    (($refineRegionDistance1 1)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
-regionRefinementLevels    (($refineRegionDistance1 2) ($refineRegionDistance2 1)); 
+regionRefinementLevels    (($refineRegionDistance1 1)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
+// regionRefinementLevels    (($refineRegionDistance1 2) ($refineRegionDistance2 1)); 
 // regionRefinementLevels    ((0 0)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
 
 // Additional Regions Refinements (e.g. Rudder region, Bow Thruster)
@@ -175,7 +175,7 @@ sphereRegionRefinementLevels  0;
 // Cf                        #eval{0.075/pow((log10($Re)-2),2)};   // skin friction coefficient ITTC 1957
 // yCellCentre               #eval{$targetYPlus*$Lpp/($Re*sqrt(Cf/2))}; // thickness of first cell layer
 
-addLayers                 false;
+addLayers                 true;
 nPrismLayers              3; // 3
 
 // Boundary layer is defined by using couple of parameters

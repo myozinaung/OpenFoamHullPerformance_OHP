@@ -24,7 +24,7 @@ runApplication surfaceFeatureExtract
 runApplication blockMesh
 
 # Refinement in x and y dir only
-for i in 1 2 3 4 #5 # 6
+for i in 1 2 3 4 5 # 6
 do
     runApplication -s $i \
         foamDictionary  system/refineMeshDict -entry set -set c${i}
