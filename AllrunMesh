@@ -10,19 +10,21 @@ export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 touch case.foam
 #------------------------------------------------------------------------------#
 
+### PART 1: GEOMETRY ###
 # ./AllrunGeo
 
 # Copy hull surface from resources folder
 mkdir -p constant/triSurface
 cp geometry/hull.stl constant/triSurface/
 
+### PART 2: MESH ###
 # Generate hull.eMesh file (edge features)
 runApplication surfaceFeatureExtract
 
-runApplication blockMesh # z-dir refinement
+runApplication blockMesh
 
 # Refinement in x and y dir only
-for i in 1 2 3 4 5 #6
+for i in 1 2 3 4 #5 # 6
 do
     runApplication -s $i \
         foamDictionary  system/refineMeshDict -entry set -set c${i}
@@ -34,32 +36,30 @@ do
         refineMesh -dict system/refineMeshDict -overwrite
 done
 
-# Refinement in all 3 directions
-for i in 6
-do
-    runApplication -s $i \
-        foamDictionary  system/refineMeshDict3D -entry set -set c${i}
+# # Refinement in all 3 directions, alternative is to use snappyHexMesh region refinement (using distance from hull surface)
+# for i in 6
+# do
+#     runApplication -s $i \
+#         foamDictionary  system/refineMeshDict3D -entry set -set c${i}
 
-    runApplication -s $i \
-        topoSet -dict system/topoSetDict
+#     runApplication -s $i \
+#         topoSet -dict system/topoSetDict
 
-    runApplication -s $i \
-        refineMesh -dict system/refineMeshDict3D -overwrite
-done
+#     runApplication -s $i \
+#         refineMesh -dict system/refineMeshDict3D -overwrite
+# done
 
 runApplication -s beforeSnappy checkMesh -allGeometry -allTopology
 
-runApplication -s forSnappyHexMesh decomposePar # decompose to run snappyHexMesh in parallel
+runApplication -s forSnappyHexMesh decomposePar
 runParallel snappyHexMesh -overwrite
-
-runParallel redistributePar -reconstruct -constant -overwrite # (not work in OF10)
-
+runParallel redistributePar -reconstruct -constant -overwrite
 rm -rf processor* # clean decomposed mesh not to interfere with interFoam decomposition
 
 runApplication checkMesh -allGeometry -allTopology -writeAllFields -writeSets vtk -writeChecks json
 
 # # for ParaView mesh quality visualization
-runApplication setsToZones -noFlipMap -time 3 # windows ParaView reader cannot load sets, therefore first convert sets to zones
+runApplication setsToZones -noFlipMap -time 3
 
 # ./AllCreateParametersFiles
 #------------------------------------------------------------------------------

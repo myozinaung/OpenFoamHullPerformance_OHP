@@ -8,4 +8,5 @@ cleanCase0
 rm -rf constant/triSurface
 rm -rf constant/extendedFeatureEdgeMesh
 rm Parameters.*
+# rm -rf log
 #------------------------------------------------------------------------------

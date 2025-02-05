@@ -8,7 +8,7 @@
 // hullZmax   0.572322;
 // zWL       0.244;     // Waterline or Free Surface Height
 
-#include "hullBounds.txt"
+#include "geometry/hullBounds.txt"
 
 
 // hullXmin   0;
@@ -32,13 +32,14 @@ meshFineness  #eval{6/$dHullX*1.0};  // mesh finess (cell size) relative to hull
 // zmin = -2.5Lpp, zmax = 1.0Lpp
 xmin    #eval{floor($hullXmin - 4*$dHullX)};    
 xmax    #eval{ceil($hullXmax + 1.5*$dHullX)};
-ymin    #eval{floor(-3*$dHullX)};    
-ymax    0;
+ymin    #eval{floor($hullYmin - 3*$dHullX)};    
+ymax    #eval{mag($hullYmax) < 0.0001 ? 0 : -$ymin}; // when hullYmax is 0, ymax is 0; otherwise ymax = -ymin
 zmin    #eval{floor($hullZmin - 2.5*$dHullX)};  
 zmax    #eval{ceil($hullZmax + 1.0*$dHullX)};
 
 xcells  #eval{round(($xmax - $xmin)*$meshFineness)};     // no. of celles between xmin and xmax (assume max 1m cell size)
-ycells  #eval{round(($ymax - $ymin)*$meshFineness)};     // no. of celles between ymin and ymax
+ycells  #eval{round(($ymax - $ymin)*$meshFineness)};
+// ycells  #eval{2*round(($ymax - $ymin)*$meshFineness/2)}; // no. of cells between ymin and ymax (rounded to even number, for full domain)
 
 // Z-dir Refinement
 nCellFS    4;          // no. of refined cells just above and below Free Surface
@@ -95,12 +96,12 @@ yminC3  #eval{$hullYmin - 2.5*$dHullY}; // -250% of hull half breadth
 yminC2  #eval{$hullYmin - 6.0*$dHullY}; // -600% of hull half breadth
 yminC1  #eval{$hullYmin - 12.0*$dHullY}; // -1200% of hull half breadth
 
-ymaxC1  0; // Symmetry Plane, centre line
-ymaxC2  0;
-ymaxC3  0;
-ymaxC4  0;
-ymaxC5  0;
-ymaxC6  0;
+ymaxC6  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 0.2*$dHullY}; // when hullYmax is 0, ymaxC1 is 0 (half domain)
+ymaxC5  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 0.5*$dHullY};
+ymaxC4  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 1.5*$dHullY};
+ymaxC3  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 2.5*$dHullY};
+ymaxC2  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 6.0*$dHullY};
+ymaxC1  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 12.0*$dHullY};
 
 // Z dimensions (these values can effect the mesh non-orthogonality at the transitions)
 zminC6  #eval{$hullZmin - 0.25*$dHullZ}; // -25% of hull depth
@@ -132,29 +133,36 @@ surfaceRefinementLevel    (0 0);   // (min_level max_level)
 resolveFeatureAngle       45;      // [deg] smaller >> more feature, applies maximum level of refinement to cells that can see intersections whose angle exceeds this value.
 nCellsBetweenLevels       3;
 
-// 3. REGION Refinement (region around hull)
+// 3. REGION Refinement (region around hull) always 3D
 refineRegionDistance1     #eval{0.2*$dHullY};     // [m] distance from hull surface
+refineRegionDistance2     #eval{0.4*$dHullY};     // [m] distance from hull surface
 // regionRefinementLevels    (($refineRegionDistance1 1)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
-regionRefinementLevels    ((0 0)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
+regionRefinementLevels    (($refineRegionDistance1 2) ($refineRegionDistance2 1)); 
+// regionRefinementLevels    ((0 0)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
 
 // Additional Regions Refinements (e.g. Rudder region, Bow Thruster)
 // topoSet cannot be used for these regions, topoSet region must be cover the whole geometry
 // use 0 refinementLevel to turn off these refinement regions
 // for Wake Region (Box)
-wakeRegionMin   (-1.0 -1.0 0);    // (xmin ymin zmin)
-wakeRegionMax   (0.1 0 0.35);       // (xmax ymax zmax)
-wakeRegionRefinementLevels  0;      // no. of level relative to background mesh
+boxRegion1Min   (-1.0 -1.0 0);    // (xmin ymin zmin)
+boxRegion1Max   (0.1 0 0.35);       // (xmax ymax zmax)
+boxRegion1RefinementLevels  0;      // no. of level relative to background mesh
 
 // for Appendages Region (Box)
-appdRegionMin   (-0.025 -0.3 -0.05);    // [m] (xmin ymin zmin)
-appdRegionMax   (1.025 -0.11 0.15);      // [m] (xmax ymax zmax)
-appdRegionRefinementLevels  0;
+boxRegion2Min   (-0.025 -0.3 -0.05);    // [m] (xmin ymin zmin)
+boxRegion2Max   (1.025 -0.11 0.15);      // [m] (xmax ymax zmax)
+boxRegion2RefinementLevels  0;
 
 // for Tunnel Region (Cylinder)
-tunnelRegionPoint1  (4.225 -0.71 0.115);    // [m] (x y z)
-tunnelRegionPoint2  (4.225 -0.50 0.115);    // [m] (x y z)
-tunnelRegionRadius  0.065;
-tunnelRegionRefinementLevels  0;
+cylinderRegionPoint1  (4.225 -0.71 0.115);    // [m] (x y z)
+cylinderRegionPoint2  (4.225 -0.50 0.115);    // [m] (x y z)
+cylinderRegionRadius  0.065;
+cylinderRegionRefinementLevels  0;
+
+// for Sphere Region (Sphere)
+sphereRegionCenter  (4.225 -0.71 0.115);    // [m] (x y z)
+sphereRegionRadius  0.065;
+sphereRegionRefinementLevels  0;
 
 
 // 4. PRISM Layers on Hull Surface (need to use y+ here, 30 to 300 for wall functions)
@@ -167,7 +175,7 @@ tunnelRegionRefinementLevels  0;
 // Cf                        #eval{0.075/pow((log10($Re)-2),2)};   // skin friction coefficient ITTC 1957
 // yCellCentre               #eval{$targetYPlus*$Lpp/($Re*sqrt(Cf/2))}; // thickness of first cell layer
 
-addLayers                 true;
+addLayers                 false;
 nPrismLayers              3; // 3
 
 // Boundary layer is defined by using couple of parameters

@@ -46,29 +46,39 @@ geometry
         }
     }
 
-    wakeRegion
+    boxRegion1
     {
         para {#include        "../ParametersMesh"}
         type searchableBox;
-        min $para.wakeRegionMin;
-        max $para.wakeRegionMax;
+        min $para.boxRegion1Min;
+        max $para.boxRegion1Max;
     }
 
-    appdRegion
+    boxRegion2
     {
         para {#include        "../ParametersMesh"}
         type searchableBox;
-        min $para.appdRegionMin;
-        max $para.appdRegionMax;
+        min $para.boxRegion2Min;
+        max $para.boxRegion2Max;
     }
 
-    tunnelRegion
+    cylinderRegion
     {
         para {#include        "../ParametersMesh"}
         type    searchableCylinder;
-        point1  $para.tunnelRegionPoint1;
-        point2  $para.tunnelRegionPoint2;
-        radius  $para.tunnelRegionRadius;
+        point1  $para.cylinderRegionPoint1;
+        point2  $para.cylinderRegionPoint2;
+        radius  $para.cylinderRegionRadius;
+    }
+
+    // Sphere Region
+    sphereRegion
+    {
+        para {#include        "../ParametersMesh"}
+        type    searchableSphere;
+        center  $para.sphereRegionCenter;
+        origin  $para.sphereRegionCenter;
+        radius  $para.sphereRegionRadius;
     }
 }
 
@@ -181,25 +191,32 @@ castellatedMeshControls
             levels $para/regionRefinementLevels;
         }
 
-        wakeRegion
+        boxRegion1
         {   
             para {#include        "../ParametersMesh"}
             mode inside;           
-            levels ((1 $para.wakeRegionRefinementLevels));
+            levels ((1 $para.boxRegion1RefinementLevels));
         }
 
-        appdRegion
+        boxRegion2
         {   
             para {#include        "../ParametersMesh"}
             mode inside;           
-            levels ((1 $para.appdRegionRefinementLevels));
+            levels ((1 $para.boxRegion2RefinementLevels));
         }
 
-        tunnelRegion
+        cylinderRegion
         {   
             para {#include        "../ParametersMesh"}
             mode inside;           
-            levels ((1 $para.tunnelRegionRefinementLevels));
+            levels ((1 $para.cylinderRegionRefinementLevels));
+        }
+
+        sphereRegion
+        {   
+            para {#include        "../ParametersMesh"}
+            mode inside;           
+            levels ((1 $para.sphereRegionRefinementLevels));
         }
     }
 
@@ -374,7 +391,7 @@ addLayersControls
     nLayerIter 50;
 
     // Add layers in multiple passes - gives layers a chance to rotate
-    nOuterIter      6; // 3, improved layers
+    nOuterIter      3; // 3, improved layers
 
     // Max number of iterations after which relaxed meshQuality controls
     // get used. Up to nRelaxIter it uses the settings in meshQualityControls,

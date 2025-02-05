@@ -1,14 +1,14 @@
 {
-    "maxNonOrth" : 69.8869,
-    "aveNonOrth" : 6.12536,
-    "maxSkew" : 6.28847,
+    "maxNonOrth" : 69.9836,
+    "aveNonOrth" : 6.16548,
+    "maxSkew" : 6.85023,
     "nWarnSkew" : 14,
-    "minDeterminant" : 5.95505e-07,
-    "aveDeterminant" : 0.767464,
+    "minDeterminant" : 5.39514e-07,
+    "aveDeterminant" : 0.549383,
     "thresholdDeterminant" : 0.001,
-    "nErrorDeterminant" : 52383,
-    "minFaceWeight" : 0.0506383,
-    "aveFaceWeight" : 0.487115,
-    "minFaceVolumeRatio" : 0.035685,
-    "aveFaceVolumeRatio" : 0.941672
+    "nErrorDeterminant" : 179622,
+    "minFaceWeight" : 0.158428,
+    "aveFaceWeight" : 0.49192,
+    "minFaceVolumeRatio" : 0.0693092,
+    "aveFaceVolumeRatio" : 0.960088
 }

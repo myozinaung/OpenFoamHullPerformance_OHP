@@ -291,7 +291,7 @@ class GeometryProcessor:
             # Process the mesh
             modified_mesh = self._extrude_edges_to_xz(mesh)
             
-            if not modified_mesh.is_watertight:
+            if not modified_mesh.is_watertight: # problem with snappyHexMesh
                 # Try additional repairs
                 trimesh.repair.fill_holes(modified_mesh)
                 trimesh.repair.fix_normals(modified_mesh)
@@ -818,7 +818,8 @@ class GeometryProcessor:
         self,
         input_file: str,
         draft: float,
-        output_file: str = 'hullBounds.txt'
+        output_file: str = 'hullBounds.txt',
+        half_domain: bool = True
     ) -> Tuple[bool, str]:
         """
         Write bounding box values from an STL file to a text file.
@@ -827,6 +828,7 @@ class GeometryProcessor:
             input_file (str): Path to the input STL file
             draft (float): Draft height (waterline)
             output_file (str, optional): Path for the output text file. Defaults to 'hullBounds.txt'
+            half_domain (bool, optional): If True, sets hullYmax to 0.0 for half domain. Defaults to True
             
         Returns:
             Tuple[bool, str]: (Success status, Message/Error description)
@@ -847,8 +849,9 @@ class GeometryProcessor:
                 f.write(f"hullXmin  {bbox[0][0]:.4f};\n")
                 f.write(f"hullXmax  {bbox[1][0]:.4f};\n")
                 f.write(f"hullYmin  {bbox[0][1]:.4f};\n")
-                # Assuming the hull is symmetric about Y-axis
-                f.write(f"hullYmax  {0.0};\n")
+                # Set hullYmax based on half_domain parameter
+                ymax = 0.0 if half_domain else bbox[1][1]
+                f.write(f"hullYmax  {ymax:.4f};\n")
                 f.write(f"hullZmin  {bbox[0][2]:.4f};\n")
                 f.write(f"hullZmax  {bbox[1][2]:.4f};\n")
                 f.write(f"zWL       {draft:.4f};\n")
@@ -863,7 +866,8 @@ class GeometryProcessor:
         original_stl: str,
         clipped_stl: str,
         rho_water: float = 1000.0,
-        output_file: str = 'hullMassInertiaCoG.txt'
+        output_file: str = 'hullMassInertiaCoG.txt',
+        half_domain: bool = True
     ) -> Tuple[bool, str]:
         """
         Calculate approximate mass properties from original and clipped hull geometries.
@@ -873,6 +877,7 @@ class GeometryProcessor:
             clipped_stl (str): Path to the clipped (underwater portion) STL file
             rho_water (float, optional): Water density in kg/m^3. Defaults to 1000.0
             output_file (str, optional): Output file path. Defaults to 'hullMassInertiaCoG.txt'
+            half_domain (bool, optional): If True, assumes half hull geometry. Defaults to True
             
         Returns:
             Tuple[bool, str]: (Success status, Message/Error description)
@@ -898,8 +903,8 @@ class GeometryProcessor:
             # Get volume from clipped (underwater) portion
             vol = abs(clipped_mesh.volume)  # Ensure volume is positive
 
-            # Calculate mass (assuming half hull)
-            mass = vol * rho_water / 2
+            # Calculate mass based on half_domain parameter
+            mass = vol * rho_water / 2 if half_domain else vol * rho_water
 
             # Calculate radii of gyration
             kxx = 0.34 * Beam

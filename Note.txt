@@ -50,3 +50,9 @@ Mesh Refinement Controls
 
 Rigid Body Motion & Dynamic Mesh
 - 
+
+Generalised Refinement Regions
+- Box Regions (wake, appendages, etc.)
+- Cylinder Regions (tunnel)
+- Sphere Regions (optional)
+- Cone Regions (optional)

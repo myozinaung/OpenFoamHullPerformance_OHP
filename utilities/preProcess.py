@@ -12,9 +12,10 @@ underwater_STL = "geometry/hullUnderwater.stl"
 
 # scale = 0.001*1/59.4
 scale = 0.001*1/40
-rotate = (0, 0, 0)
+rotate = (10, -5, 0)
 translate = (0, 0, 0)
 draft = 0.27 # after scaling and transformation
+half_domain = False
 
 # scale = 1/40
 # rotate = (180, 0, 180)
@@ -25,7 +26,7 @@ rho_water = 998
 
 # Configuration flags
 do_transform = True
-do_mirror = False
+do_mirror = True
 do_close_openings = True
 
 # Define color codes
@@ -51,16 +52,7 @@ else:
         success, message = False, f"Error copying file: {str(e)}"
     print(f"{BLUE}Copy STL file:{RESET}", message)
 
-# Transform geometry
-if do_transform:
-    success, message = processor.transform_geometry(
-        input_file=base_STL,
-        output_file=base_STL,
-        scale=scale,
-        translate=translate,
-        rotate=rotate # y-axis +ive bow down
-    )
-    print(f"{GREEN}Transform geometry:{RESET}", message)
+
 
 # Mirror a mesh along the y-axis
 if do_mirror:
@@ -90,13 +82,23 @@ if do_close_openings:
     )
     print(f"{GREEN}Close openings:{RESET}", message)
 
-
+# Transform geometry
+if do_transform:
+    success, message = processor.transform_geometry(
+        input_file=base_STL,
+        output_file=base_STL,
+        scale=scale,
+        translate=translate,
+        rotate=rotate # y-axis +ive bow down
+    )
+    print(f"{GREEN}Transform geometry:{RESET}", message)
 
 # Write hull bounds and draft
 success, message = processor.write_hull_bounds(
     input_file=base_STL,
     draft=draft,
-    output_file="hullBounds.txt"
+    output_file="geometry/hullBounds.txt",
+    half_domain=half_domain
 )
 print(f"{BLUE}Write hull bounds:{RESET}", message)
 
@@ -114,6 +116,7 @@ success, message = processor.approximate_mass_properties(
     original_stl=base_STL,
     clipped_stl=underwater_STL,
     rho_water=rho_water,  # seawater density
-    output_file="hullMassInertiaCoG.txt"
+    output_file="geometry/hullMassInertiaCoG.txt",
+    half_domain=half_domain
 )
 print(f"{BLUE}Approximate mass properties:{RESET}", message)

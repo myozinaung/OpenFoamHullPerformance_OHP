@@ -13,7 +13,7 @@ Iyy             5;      // [kg.m^2] for Pitch motion
 Izz             5;      // [kg.m^2] for Yaw motion (not important here)
 centreOfMass    (0.589 0 0.156); // [m] (x y z), (LCB 0 VCG)
 
-// #include "hullMassInertiaCoG.txt"
+// #include "geometry/hullMassInertiaCoG.txt"
 
 // Mesh Morphing Range for the moving body (meshes within the range will deform)
 // innerDistance   0.3; // should be relative to the size of model
