@@ -291,18 +291,18 @@ class GeometryProcessor:
             # Process the mesh
             modified_mesh = self._extrude_edges_to_xz(mesh)
             
-            if not modified_mesh.is_watertight: # problem with snappyHexMesh
-                # Try additional repairs
-                trimesh.repair.fill_holes(modified_mesh)
-                trimesh.repair.fix_normals(modified_mesh)
-                trimesh.repair.fix_inversion(modified_mesh)
-                trimesh.repair.fix_winding(modified_mesh)
-                trimesh.repair.broken_faces(modified_mesh)
-                modified_mesh.remove_duplicate_faces()
-                modified_mesh.remove_degenerate_faces()
-                modified_mesh.remove_infinite_values()
-                modified_mesh.merge_vertices(merge_tex=True)
-                modified_mesh.process()
+            # if not modified_mesh.is_watertight: # wrong mass and CoG of clipped hull
+            #     # Try additional repairs
+            #     trimesh.repair.fill_holes(modified_mesh)
+            #     trimesh.repair.fix_normals(modified_mesh)
+            #     trimesh.repair.fix_inversion(modified_mesh)
+            #     trimesh.repair.fix_winding(modified_mesh)
+            #     trimesh.repair.broken_faces(modified_mesh)
+            #     modified_mesh.remove_duplicate_faces()
+            #     modified_mesh.remove_degenerate_faces()
+            #     modified_mesh.remove_infinite_values()
+            #     modified_mesh.merge_vertices(merge_tex=True)
+            #     modified_mesh.process()
 
             # Export the result
             modified_mesh.export(output_file)

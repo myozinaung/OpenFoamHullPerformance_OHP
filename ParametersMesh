@@ -24,7 +24,7 @@ dHullX    #eval{$hullXmax - $hullXmin};  // hull length (~Lpp)
 dHullY    #eval{$hullYmax - $hullYmin};  // hull hlaf-breadth
 dHullZ    #eval{$hullZmax - $hullZmin};  // hull depth
 
-meshFineness  #eval{6/$dHullX*1.0};  // mesh finess (cell size) relative to hull length (assume DTC is 6m with max cell size 1m)
+meshFineness  #eval{6/$dHullX*0.5};  // mesh finess (cell size) relative to hull length (assume DTC is 6m with max cell size 1m)
 
 // XYZ Bounds of Rectangular Block
 // xmin = -4Lpp, xmax = Lpp + 1.5Lpp
@@ -122,6 +122,7 @@ zmaxC1  #eval{$hullZmax + 4.00*$dHullZ}; // +400% of hull depth
 // https://www.cfdsupport.com/OpenFOAM-Training-by-CFD-Support/node119.html
 maxLocalCells   5000000;
 maxGlobalCells  10000000;  // Max. Total Cells
+locationInMesh  (-2.0 -0.1 -0.5);
 
 // Hull Refinement (Edge/Feature, Surface, Region, Prism Layers)
 // 1. EDGE Refinement
@@ -129,15 +130,16 @@ featuresIncludedAngle     150;     // [deg] surfaceFeatureExtractDict, ori 150, 
 edgeRefinementLevel       0;       // used with "hull.eMesh"
 
 // 2. SURFACE Refinement
-surfaceRefinementLevel    (0 0);   // (min_level max_level)
+surfaceRefinementLevel    (0 0);   // (min_level max_level), use larger than regionRefinementLevels
 resolveFeatureAngle       45;      // [deg] smaller >> more feature, applies maximum level of refinement to cells that can see intersections whose angle exceeds this value.
 nCellsBetweenLevels       3;
 
 // 3. REGION Refinement (region around hull) always 3D
-refineRegionDistance1     #eval{0.2*$dHullY};     // [m] distance from hull surface
-refineRegionDistance2     #eval{0.4*$dHullY};     // [m] distance from hull surface
-regionRefinementLevels    (($refineRegionDistance1 1)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
-// regionRefinementLevels    (($refineRegionDistance1 2) ($refineRegionDistance2 1)); 
+refineRegionDistance1     #eval{0.1*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC5
+refineRegionDistance2     #eval{0.2*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC4
+refineRegionDistance3     #eval{0.3*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC3
+// regionRefinementLevels    (($refineRegionDistance1 1)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
+regionRefinementLevels    (($refineRegionDistance1 3) ($refineRegionDistance2 2) ($refineRegionDistance3 1)); 
 // regionRefinementLevels    ((0 0)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
 
 // Additional Regions Refinements (e.g. Rudder region, Bow Thruster)

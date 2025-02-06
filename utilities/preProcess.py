@@ -3,30 +3,40 @@ from shutil import copyfile
 
 # Create an instance
 processor = GeometryProcessor()
-
-input_file = "geometry/kcs.igs"
-# input_file = "geometry/hullDTC.stl"
-# input_file = "geometry/hull.stl"
 base_STL = "geometry/hull.stl"
 underwater_STL = "geometry/hullUnderwater.stl"
+rho_water = 998
 
+
+# input_file = "geometry/hull.stl"
+
+# input_file = "geometry/hullDTC.stl"
 # scale = 0.001*1/59.4
-scale = 0.001*1/40
-rotate = (10, -5, 0)
-translate = (0, 0, 0)
-draft = 0.27 # after scaling and transformation
-half_domain = False
 
+
+# input_file = "geometry/kcs.igs"
+# scale = 0.001*1/40
+# rotate = (10, -5, 0) # y-axis +ive bow down
+# translate = (0, 0, 0)
+# draft = 0.27 # after scaling and transformation
+# half_domain = False
+
+# input_file = "geometry/jbc.igs"
 # scale = 1/40
 # rotate = (180, 0, 180)
 # translate = (0, 0, 0)
 # draft = 0.48
 
-rho_water = 998
+input_file = "geometry/imsyacht.igs"
+scale = 0.001*1/2
+rotate = (10, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
+translate = (0, 0, 0)
+draft = 0.0 # after scaling and transformation
+half_domain = False
 
 # Configuration flags
 do_transform = True
-do_mirror = True
+do_mirror = False
 do_close_openings = True
 
 # Define color codes

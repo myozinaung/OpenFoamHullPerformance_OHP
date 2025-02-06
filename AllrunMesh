@@ -23,31 +23,34 @@ runApplication surfaceFeatureExtract
 
 runApplication blockMesh
 
-# Refinement in x and y dir only
-for i in 1 2 3 4 5 # 6
+# Define the number of refinement iterations
+N_ITERATIONS=3
+# Define the transition point for 3D refinement
+TRANSITION_3D=4
+for i in $(seq 1 $N_ITERATIONS)
 do
-    runApplication -s $i \
-        foamDictionary  system/refineMeshDict -entry set -set c${i}
+    if [ $i -lt $TRANSITION_3D ]; then
+        # Use 2D(x,y) refinement for iterations before transition point
+        runApplication -s $i \
+            foamDictionary  system/refineMeshDict -entry set -set c${i}
 
-    runApplication -s $i \
-        topoSet -dict system/topoSetDict
+        runApplication -s $i \
+            topoSet -dict system/topoSetDict
 
-    runApplication -s $i \
-        refineMesh -dict system/refineMeshDict -overwrite
+        runApplication -s $i \
+            refineMesh -dict system/refineMeshDict -overwrite
+    else
+        # Use 3D refinement for iterations after and including transition point
+        runApplication -s $i \
+            foamDictionary  system/refineMeshDict3D -entry set -set c${i}
+
+        runApplication -s $i \
+            topoSet -dict system/topoSetDict
+
+        runApplication -s $i \
+            refineMesh -dict system/refineMeshDict3D -overwrite
+    fi
 done
-
-# # Refinement in all 3 directions, alternative is to use snappyHexMesh region refinement (using distance from hull surface)
-# for i in 6
-# do
-#     runApplication -s $i \
-#         foamDictionary  system/refineMeshDict3D -entry set -set c${i}
-
-#     runApplication -s $i \
-#         topoSet -dict system/topoSetDict
-
-#     runApplication -s $i \
-#         refineMesh -dict system/refineMeshDict3D -overwrite
-# done
 
 runApplication -s beforeSnappy checkMesh -allGeometry -allTopology
 
