@@ -6,7 +6,7 @@ processor = GeometryProcessor()
 base_STL = "geometry/hull.stl"
 underwater_STL = "geometry/hullUnderwater.stl"
 rho_water = 1025
-
+bottom_keel_depth = 0.0
 
 # input_file = "geometry/hull.stl"
 
@@ -47,6 +47,7 @@ rotate = (0, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
 translate = (0, 0, 0)
 draft = 0.05 # after scaling and transformation
 half_domain = False
+bottom_keel_depth = 0.7
 
 # input_file = "geometry/ethan.stl"
 # scale = 0.1
@@ -129,7 +130,8 @@ success, message = processor.write_hull_bounds(
     input_file=base_STL,
     draft=draft,
     output_file="geometry/hullBounds.txt",
-    half_domain=half_domain
+    half_domain=half_domain,
+    bottom_keel_depth=bottom_keel_depth
 )
 print(f"{BLUE}Write hull bounds:{RESET}", message)
 

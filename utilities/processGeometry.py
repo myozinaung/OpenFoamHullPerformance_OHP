@@ -819,7 +819,8 @@ class GeometryProcessor:
         input_file: str,
         draft: float,
         output_file: str = 'hullBounds.txt',
-        half_domain: bool = True
+        half_domain: bool = True,
+        bottom_keel_depth: float = 0.0
     ) -> Tuple[bool, str]:
         """
         Write bounding box values from an STL file to a text file.
@@ -829,6 +830,7 @@ class GeometryProcessor:
             draft (float): Draft height (waterline)
             output_file (str, optional): Path for the output text file. Defaults to 'hullBounds.txt'
             half_domain (bool, optional): If True, sets hullYmax to 0.0 for half domain. Defaults to True
+            bottom_keel_depth (float, optional): Depth of the bottom keel. Defaults to 0.0
             
         Returns:
             Tuple[bool, str]: (Success status, Message/Error description)
@@ -855,6 +857,7 @@ class GeometryProcessor:
                 f.write(f"hullZmin  {bbox[0][2]:.4f};\n")
                 f.write(f"hullZmax  {bbox[1][2]:.4f};\n")
                 f.write(f"zWL       {draft:.4f};\n")
+                f.write(f"bottomKeelDepth  {bottom_keel_depth:.4f};\n")
 
             return True, f"Successfully wrote bounding box to {output_file}"
 

@@ -35,3 +35,13 @@ Sailing Boat
 - Draft:
 - Weight: 57 + 70 = 127 kg / 1025 kg/m^3 = 0.124 m^3
 - 
+
+Restart with DynamicMeshDict enabled
+- enable dynamicMeshDict
+- enable sixDoFRigidBodyMotion functionObject in controlDict
+- copy pointDisplacement file from 0 to latestTime
+- Parameters: 
+    - startFrom: latestTime
+    - adjust CFLAutoTimeStep parameters: time, maxCo, maxAlphaCo, deltaT
+
+

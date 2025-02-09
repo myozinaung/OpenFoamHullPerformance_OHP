@@ -56,21 +56,21 @@ constraints
     }
 }
 
-// restraints
-// {
-//     translationDamper
-//     {
-//         para {#include        "../ParametersConst"}
-//         sixDoFRigidBodyMotionRestraint linearDamper;
-//         coeff         $para.translationDamperCoeff;
-//     }
-//     rotationDamper
-//     {
-//         para {#include        "../ParametersConst"}
-//         sixDoFRigidBodyMotionRestraint sphericalAngularDamper;
-//         coeff         $para.rotationDamperCoeff;
-//     }
-// }
+restraints
+{
+    translationDamper
+    {
+        para {#include        "../ParametersConst"}
+        sixDoFRigidBodyMotionRestraint linearDamper;
+        coeff         $para.translationDamperCoeff;
+    }
+    rotationDamper
+    {
+        para {#include        "../ParametersConst"}
+        sixDoFRigidBodyMotionRestraint sphericalAngularDamper;
+        coeff         $para.rotationDamperCoeff;
+    }
+}
 
 
 // ************************************************************************* //

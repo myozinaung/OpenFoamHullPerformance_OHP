@@ -7,7 +7,11 @@ cd ${0%/*} || exit 1    # Run from this directory
 # This script creates the addtional Parameters files (Parameters.1, Parameters.2, Parameters.3) 
 # that will replace the original Parameters file at corresponding time (time1, time2, time3).
 
-rm Parameters.*
+rm Parameters.0
+rm Parameters.1
+rm Parameters.2
+rm Parameters.3
+
 # Reset the original file with 0 files if they have been changed
 sed -i 's/$maxCo1/$maxCo0/' Parameters
 sed -i 's/$maxAlphaCo1/$maxAlphaCo0/' Parameters

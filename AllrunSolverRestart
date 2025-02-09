@@ -1,0 +1,49 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+
+# To allow OpenMPI to run as root
+export OMPI_ALLOW_RUN_AS_ROOT=1
+export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+#------------------------------------------------------------------------------
+
+### PART 4: RERUN SOLVER with DynamicMeshDict enabled ###
+
+
+# Get latest time directory
+latestTime=$(foamListTimes -latestTime)
+
+# Copy pointDisplacement file from 0 to latestTime
+cp -f 0/pointDisplacement "${latestTime}"
+
+# rename dynamicMeshDict.static to dynamicMeshDict (enable dynamicMesh)
+cp -f constant/dynamicMeshDict.disabled constant/dynamicMeshDict
+
+# replace the controlDict with controlDict.dynamic
+cp -f system/controlDict.dynamic system/controlDict
+
+# replace the Parameters.static with Parameters.dynamic
+echo "latestTime ${latestTime};" > Parameters
+cat Parameters.dynamic >> Parameters
+
+./AllCreateParametersFiles
+
+rm -rf processor*
+
+# Check and handle each log file
+[ -f log.decomposePar.fixed ] && rm -f log.decomposePar || mv -f log.decomposePar log.decomposePar.fixed
+[ -f log.renumberMesh.fixed ] && rm -f log.renumberMesh || mv -f log.renumberMesh log.renumberMesh.fixed
+[ -f log.interFoam.fixed ] && rm -f log.interFoam || mv -f log.interFoam log.interFoam.fixed
+[ -f log.reconstructPar.fixed ] && rm -f log.reconstructPar || mv -f log.reconstructPar log.reconstructPar.fixed
+[ -f log.interFoam.yPlus.fixed ] && rm -f log.interFoam.yPlus || mv -f log.interFoam.yPlus log.interFoam.yPlus.fixed
+
+runApplication decomposePar
+
+runParallel renumberMesh -overwrite
+
+runParallel $(getApplication)
+
+runApplication reconstructPar
+
+runApplication -s yPlus interFoam -postProcess -func yPlus
+#------------------------------------------------------------------------------

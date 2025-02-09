@@ -25,7 +25,7 @@ dHullX    #eval{$hullXmax - $hullXmin};  // hull length (~Lpp)
 dHullY    #eval{mag($hullYmax) < 0.0001 ? -$hullYmin : ($hullYmax - $hullYmin)/2};  // hull half-breadth (handles both half and full domain)
 dHullZ    #eval{$hullZmax - $hullZmin};  // hull depth
 
-meshFineness  #eval{6/$dHullX*0.7};  // mesh finess (cell size) relative to hull length (assume DTC is 6m with max cell size 1m)
+meshFineness  #eval{6/$dHullX*0.65};  // mesh finess (cell size) relative to hull length (assume DTC is 6m with max cell size 1m)
 
 // XYZ Bounds of Rectangular Block
 // xmin = -4Lpp, xmax = Lpp + 1.5Lpp

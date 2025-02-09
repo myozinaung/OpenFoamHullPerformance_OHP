@@ -20,9 +20,9 @@
 // outerDistance   1;
 innerDistance   0.02; // should be relative to the size of model
 outerDistance   0.6;
-meshDiffusivity inverseVolume (hull); // inverseDistance, inverseVolume, uniform, quadratic inverseDistance
-translationDamperCoeff  8596; // should be relative to the size of model
-rotationDamperCoeff     11586;
+meshDiffusivity inverseVolume (hull); // inverseVolume, uniform, quadratic inverseDistance
+translationDamperCoeff  4000; // 8596 for DTC should be relative to the size of model
+rotationDamperCoeff     6000; // 11586 for DTC
 
 //*********************** TURBULENCE MODEL and WALL FUNCTIONS *********************** //
 // TURBULENCE MODEL k-omega SST (initial and boundary values, "0" dir)

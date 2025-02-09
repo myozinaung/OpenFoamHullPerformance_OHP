@@ -1,0 +1,158 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+para {#include        "../Parameters"}
+
+application     interFoam;
+
+startFrom       $para/startFrom;
+
+startTime       $para/startTime;
+
+stopAt          $para/stopAt;
+
+endTime         $para/endTime;
+
+deltaT          $para/deltaT;
+
+writeControl    adjustableRunTime;
+
+writeInterval   $para/writeInterval;
+
+purgeWrite      $para/purgeWrite;
+
+writeFormat     binary;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  $para/CFLAutoTimeStep;
+
+maxCo           $para/maxCo;
+maxAlphaCo      $para/maxAlphaCo;
+maxDeltaT       $para/maxDeltaT;
+
+functions
+{
+    forces
+    {
+        para {#include        "../ParametersConst"}
+        type            forces;
+        libs            ("libforces.so");
+        patches         (hull);
+        // rhoInf          $para/rho_water;
+        log             on;
+        writeControl    timeStep;
+        writeInterval   1;
+        CofR            $para/centreOfMass;
+    }
+
+    
+    sixDoFRigidBodyState
+    {
+        type           sixDoFRigidBodyState;
+        libs           (sixDoFRigidBodyState);
+        patches        (hull);
+        angleFormat    degrees;
+    }
+
+    solverInfo
+    {
+        type            solverInfo;
+        writeControl    timeStep;
+        writeInterval   1;
+        libs            ("libutilityFunctionObjects.so");
+        fields          (alpha.water k omega p_rgh U); // U is only available when momentemPredictor is on
+    }
+
+    parametersUpdate // used for changing deltaT, maxCo and maxAlphaCo
+    {
+        para {#include        "../Parameters"}
+        type                timeActivatedFileUpdate;
+        libs                ("libutilityFunctionObjects.so");
+        fileToUpdate        "$FOAM_CASE/Parameters";
+        timeVsFile
+        (
+            ($para.time0 "$FOAM_CASE/Parameters.0")
+            ($para.time1 "$FOAM_CASE/Parameters.1")
+            ($para.time2 "$FOAM_CASE/Parameters.2")
+            ($para.time3 "$FOAM_CASE/Parameters.3")
+        );
+    }
+}
+
+// ************************************************************************* //
+// Stopping Criteria, e.g., to stop the calculation if:
+
+// the momentum initial residual exceeds 0.9 (used as a divergence indicator), or
+// number of the momentum solver iterations exceeds 100 (used as a divergence indicator), or
+// if the average drag coefficient remains within a 0.001 range over a window of 20 steps and the maximum momentum equation residual falls below 1e-4
+// runTimeControl1
+// {
+//     type            runTimeControl;
+//     libs            ("libutilityFunctionObjects.so");
+//     conditions
+//     {
+//         condition0
+//         {
+//             para {#include        "../Parameters"}
+//             type            equationInitialResidual;
+//             fields          (U);
+//             value           $para/maxInitialMomentumResidual;
+//             mode            maximum;
+//         }
+//         // OR
+//         condition1
+//         {
+//             para {#include        "../Parameters"}
+//             type            equationMaxIterCondition;
+//             fields          (U);
+//             threshold       $para/maxMomentumIter;
+//         }
+//         // OR
+
+//         // Group 1
+//         condition2
+//         {
+//             para {#include        "../Parameters"}
+//             type            average;
+//             functionObject  forceCoeffs1;
+//             fields          (Cd);
+//             tolerance       $para/dragCoeffRange;
+//             window          $para/dragCoeffWindow;
+//             groupID         1; // same groupID means the conditions are checked together (AND)
+//         }
+//         // AND
+//         condition3
+//         {
+//             para {#include        "../Parameters"}
+//             type            equationInitialResidual;
+//             fields          (U);
+//             value           $para/minMomentumResidual;
+//             mode            minimum;
+//             groupID         1;
+//         }
+//     }
+// }
+
+// ************************************************************************* //
