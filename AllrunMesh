@@ -24,9 +24,9 @@ runApplication surfaceFeatureExtract
 runApplication blockMesh
 
 # Define the number of refinement iterations
-N_ITERATIONS=3
+N_ITERATIONS=4
 # Define the transition point for 3D refinement
-TRANSITION_3D=4
+TRANSITION_3D=5
 for i in $(seq 1 $N_ITERATIONS)
 do
     if [ $i -lt $TRANSITION_3D ]; then

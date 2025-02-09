@@ -92,20 +92,20 @@ functions
         fields          (alpha.water k omega p_rgh U); // U is only available when momentemPredictor is on
     }
 
-    // parametersUpdate // used for changing deltaT, maxCo and maxAlphaCo
-    // {
-    //     para {#include        "../Parameters"}
-    //     type                timeActivatedFileUpdate;
-    //     libs                ("libutilityFunctionObjects.so");
-    //     fileToUpdate        "$FOAM_CASE/Parameters";
-    //     timeVsFile
-    //     (
-    //         ($para.time0 "$FOAM_CASE/Parameters.0")
-    //         ($para.time1 "$FOAM_CASE/Parameters.1")
-    //         ($para.time2 "$FOAM_CASE/Parameters.2")
-    //         ($para.time3 "$FOAM_CASE/Parameters.3")
-    //     );
-    // }
+    parametersUpdate // used for changing deltaT, maxCo and maxAlphaCo
+    {
+        para {#include        "../Parameters"}
+        type                timeActivatedFileUpdate;
+        libs                ("libutilityFunctionObjects.so");
+        fileToUpdate        "$FOAM_CASE/Parameters";
+        timeVsFile
+        (
+            ($para.time0 "$FOAM_CASE/Parameters.0")
+            ($para.time1 "$FOAM_CASE/Parameters.1")
+            ($para.time2 "$FOAM_CASE/Parameters.2")
+            ($para.time3 "$FOAM_CASE/Parameters.3")
+        );
+    }
 }
 
 // ************************************************************************* //

@@ -29,3 +29,9 @@ New Bounding Box calculation for hull with long protruding parts (e.g., Yachts w
 - exclude long protruding parts in bbox
 - Box Refinement Region for long protruding parts
 - 
+
+Sailing Boat
+- Speed: 3 m/s 
+- Draft:
+- Weight: 57 + 70 = 127 kg / 1025 kg/m^3 = 0.124 m^3
+- 

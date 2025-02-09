@@ -1,7 +1,8 @@
-hullXmin  -3.1030;
-hullXmax  2.6126;
-hullYmin  -1.0766;
-hullYmax  0.9125;
-hullZmin  -0.5084;
-hullZmax  0.6463;
-zWL       0.0000;
+hullXmin  -2.0101;
+hullXmax  2.1399;
+hullYmin  -0.6134;
+hullYmax  0.6134;
+hullZmin  0;
+hullZmax  0.3016;
+zWL       0.0500;
+bottomKeelDepth 0.7;

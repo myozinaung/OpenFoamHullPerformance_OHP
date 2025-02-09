@@ -9,6 +9,7 @@
 // zWL       0.244;     // Waterline or Free Surface Height
 
 #include "geometry/hullBounds.txt"
+// bottomKeelDepth 0.7;
 
 
 // hullXmin   0;
@@ -21,10 +22,10 @@
 
 //////////// Below are automatically calculated //////////////
 dHullX    #eval{$hullXmax - $hullXmin};  // hull length (~Lpp)
-dHullY    #eval{$hullYmax - $hullYmin};  // hull hlaf-breadth
+dHullY    #eval{mag($hullYmax) < 0.0001 ? -$hullYmin : ($hullYmax - $hullYmin)/2};  // hull half-breadth (handles both half and full domain)
 dHullZ    #eval{$hullZmax - $hullZmin};  // hull depth
 
-meshFineness  #eval{6/$dHullX*0.5};  // mesh finess (cell size) relative to hull length (assume DTC is 6m with max cell size 1m)
+meshFineness  #eval{6/$dHullX*0.7};  // mesh finess (cell size) relative to hull length (assume DTC is 6m with max cell size 1m)
 
 // XYZ Bounds of Rectangular Block
 // xmin = -4Lpp, xmax = Lpp + 1.5Lpp
@@ -55,7 +56,7 @@ dCellz56     #eval{0.180/$meshFineness};
 // Cell thicknesses should be relative to the hull dimensions and mesh resolution (coarse, medium, fine)
 
 z0   $zmin;
-z1   #eval{$hullZmin - 1.80*$dHullZ};  // same as zminC3
+z1   #eval{$hullZmin - $bottomKeelDepth - 1.80*$dHullZ};  // same as zminC3, this should cover the bottom of the keel
 z2   #eval{$zWL-($FSCellThickness*$nCellFS)};          // Just below Free Surface
 z3   $zWL;                                  // Free Surface Height
 z4   #eval{$zWL+($FSCellThickness*$nCellFS)};          // Just above Free Surface
@@ -71,6 +72,11 @@ zcells45    #eval{round(mag($z5-$z4)/$dCellz45)};      zGrading45      1;
 zcells56    #eval{round(mag($z6-$z5)/$dCellz56)};      zGrading56      5; // gradually increased by 5 times
 
 yGrading    1;
+
+
+refineRegionDistance1     #eval{0.2*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC5
+refineRegionDistance2     #eval{0.5*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC4
+refineRegionDistance3     #eval{1.0*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC3
 
 //////////// REFINEMENT BOX REGIONS XY(Z)-dir refinement (topoSetDict and refineMeshDict) ////////////
 // X dimensions
@@ -104,19 +110,35 @@ ymaxC2  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 6.0*$dHullY};
 ymaxC1  #eval{mag($hullYmax) < 0.0001 ? 0 : $hullYmax + 12.0*$dHullY};
 
 // Z dimensions (these values can effect the mesh non-orthogonality at the transitions)
+// zminC6  #eval{$hullZmin - 0.25*$dHullZ}; // -25% of hull depth
+// zminC5  #eval{$hullZmin - 0.50*$dHullZ}; // -50% of hull depth
+// zminC4  #eval{$hullZmin - 1.00*$dHullZ}; // -100% of hull depth
+// zminC3  #eval{$hullZmin - 1.80*$dHullZ}; // -180% of hull depth, same as z1
+// zminC2  #eval{$hullZmin - 2.60*$dHullZ}; // -260% of hull depth
+// zminC1  #eval{$hullZmin - 4.40*$dHullZ}; // -440% of hull depth
+
+// When using bottomKeelDepth and regionRefinement
 zminC6  #eval{$hullZmin - 0.25*$dHullZ}; // -25% of hull depth
 zminC5  #eval{$hullZmin - 0.50*$dHullZ}; // -50% of hull depth
-zminC4  #eval{$hullZmin - 1.00*$dHullZ}; // -100% of hull depth
-zminC3  #eval{$hullZmin - 1.80*$dHullZ}; // -180% of hull depth, same as z1
-zminC2  #eval{$hullZmin - 2.60*$dHullZ}; // -260% of hull depth
-zminC1  #eval{$hullZmin - 4.40*$dHullZ}; // -440% of hull depth
+zminC4  #eval{$hullZmin - $bottomKeelDepth - $refineRegionDistance2 - 0.50*$dHullZ}; // -100% of hull depth
+zminC3  #eval{$hullZmin - $bottomKeelDepth - $refineRegionDistance3 - 0.50*$dHullZ}; // -180% of hull depth, same as z1
+zminC2  #eval{$hullZmin - $bottomKeelDepth - $refineRegionDistance3 - 1.50*$dHullZ}; // -260% of hull depth
+zminC1  #eval{$hullZmin - $bottomKeelDepth - $refineRegionDistance3 - 3.00*$dHullZ}; // -440% of hull depth
 
-zmaxC6  #eval{$hullZmax + 0.20*$dHullZ}; // +20% of hull depth
-zmaxC5  #eval{$hullZmax + 0.45*$dHullZ}; // +45% of hull depth
-zmaxC4  #eval{$hullZmax + 0.80*$dHullZ}; // +80% of hull depth
-zmaxC3  #eval{$hullZmax + 1.30*$dHullZ}; // +130% of hull depth, same as z5
-zmaxC2  #eval{$hullZmax + 2.20*$dHullZ}; // +220% of hull depth
-zmaxC1  #eval{$hullZmax + 4.00*$dHullZ}; // +400% of hull depth
+// zmaxC6  #eval{$hullZmax + 0.20*$dHullZ}; // +20% of hull depth
+// zmaxC5  #eval{$hullZmax + 0.45*$dHullZ}; // +45% of hull depth
+// zmaxC4  #eval{$hullZmax + 0.80*$dHullZ}; // +80% of hull depth
+// zmaxC3  #eval{$hullZmax + 1.30*$dHullZ}; // +130% of hull depth, same as z5
+// zmaxC2  #eval{$hullZmax + 2.20*$dHullZ}; // +220% of hull depth
+// zmaxC1  #eval{$hullZmax + 4.00*$dHullZ}; // +400% of hull depth
+
+// When using regionRefinement
+zmaxC6  #eval{$hullZmax + $refineRegionDistance1}; // +20% of hull depth
+zmaxC5  #eval{$hullZmax + $refineRegionDistance1 + 0.25*$dHullZ}; // +45% of hull depth
+zmaxC4  #eval{$hullZmax + $refineRegionDistance2 + 0.50*$dHullZ}; // +80% of hull depth
+zmaxC3  #eval{$hullZmax + $refineRegionDistance3 + 0.50*$dHullZ}; // +130% of hull depth, same as z5
+zmaxC2  #eval{$hullZmax + $refineRegionDistance3 + 1.5*$dHullZ}; // +220% of hull depth
+zmaxC1  #eval{$hullZmax + $refineRegionDistance3 + 2.0*$dHullZ}; // +400% of hull depth
 
 //////////////  BODY MESH and REFINEMENT (snappyHexMeshDict) //////////// 
 // https://www.cfdsupport.com/OpenFOAM-Training-by-CFD-Support/node119.html
@@ -134,12 +156,11 @@ surfaceRefinementLevel    (0 0);   // (min_level max_level), use larger than reg
 resolveFeatureAngle       45;      // [deg] smaller >> more feature, applies maximum level of refinement to cells that can see intersections whose angle exceeds this value.
 nCellsBetweenLevels       3;
 
-// 3. REGION Refinement (region around hull) always 3D
-refineRegionDistance1     #eval{0.1*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC5
-refineRegionDistance2     #eval{0.2*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC4
-refineRegionDistance3     #eval{0.3*$dHullY};     // [m] distance from hull surface, must be lower than (x,y,z)minC3
+// 3. REGION Refinement (region around hull) always 3D (when this is used, should use the larger thickness in blockMesh)
+
 // regionRefinementLevels    (($refineRegionDistance1 1)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
-regionRefinementLevels    (($refineRegionDistance1 3) ($refineRegionDistance2 2) ($refineRegionDistance3 1)); 
+// regionRefinementLevels    (($refineRegionDistance1 3) ($refineRegionDistance2 2) ($refineRegionDistance3 1));
+regionRefinementLevels    (($refineRegionDistance1 2) ($refineRegionDistance2 1) );  
 // regionRefinementLevels    ((0 0)); // ((distance1 refinement_level1) (distance2 refinement_level2)) e.g. ((0.05 3) (0.1 2) (0.2 2)); >> 3 levels
 
 // Additional Regions Refinements (e.g. Rudder region, Bow Thruster)
@@ -186,11 +207,12 @@ nPrismLayers              3; // 3
 // 3. finalLayerThickness & expansionRatio OR
 // 4. finalLayerThickness & thickness(total) OR
 // 5. thickness(total)    & expansionRatio
+// relativeSizes             true;  // absolute or relative to cell next to patch? (e.g., where cell is large, layer thuckness is large)
 relativeSizes             false;  // absolute or relative to cell next to patch? (e.g., where cell is large, layer thuckness is large)
 // set relativeSizes to false, when using hybrid thickness model: firstAndRelativeFinal
 // thicknessModel            firstAndRelativeFinal; // firstAndRelativeFinal, firstAndOverall, firstAndExpansion, finalAndOverall, finalAndExpansion, overallAndExpansion 
 thicknessModel            firstAndExpansion;
-expansionRatio            1.5; // 1.5
+expansionRatio            1.2; // 1.5
 // firstLayerThickness       #eval{$yCellCentre*2}; // absolute thickness
 firstLayerThickness       0.004; // 0.004, absolute thickness
 // firstLayerThickness       0.3; // relative thickness

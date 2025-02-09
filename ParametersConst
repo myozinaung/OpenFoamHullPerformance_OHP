@@ -6,14 +6,14 @@
 // Izz             921;      // [kg.m^2] for Yaw motion (not important here)
 // centreOfMass    (2.929541 0 0.2); // [m] (x y z), (LCB 0 VCG)
 
-// W3 Hull
-mass            16.146;   // [kg]
-Ixx             0.4;       // [kg.m^2] for Roll motion (not impoartant here)
-Iyy             5;      // [kg.m^2] for Pitch motion
-Izz             5;      // [kg.m^2] for Yaw motion (not important here)
-centreOfMass    (0.589 0 0.156); // [m] (x y z), (LCB 0 VCG)
+// // W3 Hull
+// mass            16.146;   // [kg]
+// Ixx             0.4;       // [kg.m^2] for Roll motion (not impoartant here)
+// Iyy             5;      // [kg.m^2] for Pitch motion
+// Izz             5;      // [kg.m^2] for Yaw motion (not important here)
+// centreOfMass    (0.589 0 0.156); // [m] (x y z), (LCB 0 VCG)
 
-// #include "geometry/hullMassInertiaCoG.txt"
+#include "geometry/hullMassInertiaCoG.txt"
 
 // Mesh Morphing Range for the moving body (meshes within the range will deform)
 // innerDistance   0.3; // should be relative to the size of model

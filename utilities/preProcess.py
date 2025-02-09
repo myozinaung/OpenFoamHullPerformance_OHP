@@ -5,7 +5,7 @@ from shutil import copyfile
 processor = GeometryProcessor()
 base_STL = "geometry/hull.stl"
 underwater_STL = "geometry/hullUnderwater.stl"
-rho_water = 998
+rho_water = 1025
 
 
 # input_file = "geometry/hull.stl"
@@ -27,12 +27,33 @@ rho_water = 998
 # translate = (0, 0, 0)
 # draft = 0.48
 
-input_file = "geometry/imsyacht.igs"
-scale = 0.001*1/2
-rotate = (10, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
+# input_file = "geometry/imsyacht.igs"
+# scale = 0.001*1/2.71
+# rotate = (0, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
+# translate = (0, 0, 0)
+# draft = 0.0 # after scaling and transformation
+# half_domain = False
+
+# input_file = "geometry/ilca.stl"
+# scale = 0.001
+# rotate = (0, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
+# translate = (0, 0, 0)
+# draft = 0.25 # after scaling and transformation
+# half_domain = False
+
+input_file = "geometry/sailboat.step"
+scale = 0.001*0.95
+rotate = (0, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
 translate = (0, 0, 0)
-draft = 0.0 # after scaling and transformation
+draft = 0.05 # after scaling and transformation
 half_domain = False
+
+# input_file = "geometry/ethan.stl"
+# scale = 0.1
+# rotate = (0, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
+# translate = (0, 0, 0)
+# draft = 0.05 # after scaling and transformation
+# half_domain = False
 
 # Configuration flags
 do_transform = True
