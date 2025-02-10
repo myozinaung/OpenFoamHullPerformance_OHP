@@ -43,9 +43,9 @@ bottom_keel_depth = 0.0
 
 input_file = "geometry/sailboat.step"
 scale = 0.001*0.95
-rotate = (0, 0, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
+rotate = (5, -2, 0) # y-axis +ive bow down, x-axis +ive incline to -ive y side
 translate = (0, 0, 0)
-draft = 0.05 # after scaling and transformation
+draft = 0.02953 # after scaling and transformation
 half_domain = False
 bottom_keel_depth = 0.7
 

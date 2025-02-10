@@ -17,12 +17,12 @@ touch case.foam
 mkdir -p constant/triSurface
 cp geometry/hull.stl constant/triSurface/
 
-# Pre Trim and Sinkage
-runApplication surfaceTransformPoints \
-    -translate '(0 0 0.02)' \
-    -rollPitchYaw '(0 -3 0)' \
-    constant/triSurface/hull.stl \
-    constant/triSurface/hull.stl
+# # Pre Trim and Sinkage
+# runApplication surfaceTransformPoints \
+#     -translate '(0 0 0.02)' \
+#     -rollPitchYaw '(0 -3 0)' \
+#     constant/triSurface/hull.stl \
+#     constant/triSurface/hull.stl
 
 ### PART 2: MESH ###
 # Generate hull.eMesh file (edge features)

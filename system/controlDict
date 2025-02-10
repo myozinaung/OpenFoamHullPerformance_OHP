@@ -75,13 +75,13 @@ functions
     //     angleFormat    degrees;
     // }
     
-    sixDoFRigidBodyState
-    {
-        type           sixDoFRigidBodyState;
-        libs           (sixDoFRigidBodyState);
-        patches        (hull);
-        angleFormat    degrees;
-    }
+    // sixDoFRigidBodyState
+    // {
+    //     type           sixDoFRigidBodyState;
+    //     libs           (sixDoFRigidBodyState);
+    //     patches        (hull);
+    //     angleFormat    degrees;
+    // }
 
     solverInfo
     {

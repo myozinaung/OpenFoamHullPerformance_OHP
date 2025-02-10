@@ -3,14 +3,14 @@
 // Uknot     25;                                   // [knot] in Full Scale
 // Scale     #eval{355.0/5.976};                   // Scale ratio for Speed scaling only
 // U         #eval{$Uknot*1852/3600/sqrt($Scale)}; // corrseponding model speed in [m/s]
-U      1.0;                                // [m/s] in Model Scale
+U      3.0;                                // [m/s] in Model Scale
 
 noCores   8; // no. of subdomains in decomposeParDict
 
 // *********************** RUNTIME CONTROLS (controlDict) *********************** //
 // can be changed during running the solver
 startTime       0;
-endTime         50;  // [sec] DTC: 35
+endTime         10;  // [sec] DTC: 35
 writeInterval   1;   // [sec]
 purgeWrite      0;   // 1 >> save only last write (to save storage), 0 >> save all write (needed for animation)
 
@@ -29,9 +29,9 @@ time1     0.10;   maxCo1  10;     maxAlphaCo1     5;     deltaT1     0.0002;
 time2     0.50;   maxCo2  15;     maxAlphaCo2     10;    deltaT2     0.0005;
 time3     1.00;   maxCo3  15;     maxAlphaCo3     10;    deltaT3     0.0010;
 
-deltaT          $deltaT3; // for manual time step
-maxCo           $maxCo3;          // max Courant No.
-maxAlphaCo      $maxAlphaCo3;     // max Interface Courant No.
+deltaT          $deltaT1; // for manual time step
+maxCo           $maxCo1;          // max Courant No.
+maxAlphaCo      $maxAlphaCo1;     // max Interface Courant No.
 maxDeltaT       0.01; // DTC: 0.01
 
 //*********************** RUNTIME CONTROL, STOPPING CRITERIA *********************** //
