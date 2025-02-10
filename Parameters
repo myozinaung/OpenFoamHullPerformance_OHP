@@ -5,12 +5,12 @@
 // U         #eval{$Uknot*1852/3600/sqrt($Scale)}; // corrseponding model speed in [m/s]
 U      3.0;                                // [m/s] in Model Scale
 
-noCores   8; // no. of subdomains in decomposeParDict
+noCores   16; // no. of subdomains in decomposeParDict
 
 // *********************** RUNTIME CONTROLS (controlDict) *********************** //
 // can be changed during running the solver
 startTime       0;
-endTime         10;  // [sec] DTC: 35
+endTime         5;  // [sec] DTC: 35
 writeInterval   1;   // [sec]
 purgeWrite      0;   // 1 >> save only last write (to save storage), 0 >> save all write (needed for animation)
 
@@ -24,14 +24,14 @@ stopAt      endTime;
 CFLAutoTimeStep  yes;    // adjust time step with max courant number, set "no" for manual time steps
 
 // To adjust deltaT, maxCo and maxAlphaCo with time (controlDict parametersUpdate and AllCreateParametersFiles)
-time0     0;      maxCo0  5;      maxAlphaCo0     5;     deltaT0     0.0001;
-time1     0.10;   maxCo1  10;     maxAlphaCo1     5;     deltaT1     0.0002;
-time2     0.50;   maxCo2  15;     maxAlphaCo2     10;    deltaT2     0.0005;
-time3     1.00;   maxCo3  15;     maxAlphaCo3     10;    deltaT3     0.0010;
+time0     0;      maxCo0  1;      maxAlphaCo0     1;     deltaT0     0.0001;
+time1     0.10;   maxCo1  2;     maxAlphaCo1     2;     deltaT1     0.0002;
+time2     0.50;   maxCo2  5;     maxAlphaCo2     5;    deltaT2     0.0005;
+time3     1.00;   maxCo3  10;     maxAlphaCo3     10;    deltaT3     0.0010;
 
-deltaT          $deltaT1; // for manual time step
-maxCo           $maxCo1;          // max Courant No.
-maxAlphaCo      $maxAlphaCo1;     // max Interface Courant No.
+deltaT          $deltaT0; // for manual time step
+maxCo           $maxCo0;          // max Courant No.
+maxAlphaCo      $maxAlphaCo0;     // max Interface Courant No.
 maxDeltaT       0.01; // DTC: 0.01
 
 //*********************** RUNTIME CONTROL, STOPPING CRITERIA *********************** //

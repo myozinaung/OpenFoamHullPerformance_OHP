@@ -75,13 +75,13 @@ functions
     //     angleFormat    degrees;
     // }
     
-    // sixDoFRigidBodyState
-    // {
-    //     type           sixDoFRigidBodyState;
-    //     libs           (sixDoFRigidBodyState);
-    //     patches        (hull);
-    //     angleFormat    degrees;
-    // }
+    sixDoFRigidBodyState
+    {
+        type           sixDoFRigidBodyState;
+        libs           (sixDoFRigidBodyState);
+        patches        (hull);
+        angleFormat    degrees;
+    }
 
     solverInfo
     {
@@ -161,5 +161,51 @@ functions
 //         }
 //     }
 // }
+
+// // Watches for presence of the named trigger file in the case directory and signals a simulation stop (or other) event if found.
+// abort
+// {
+//     type    abort;
+//     libs    (utilityFunctionObjects);
+
+//     file    "<case>/GOODBYE";
+//     action  writeNow // noWriteNow, writeNow, nextWrite, endTime
+// }
+// // https://www.openfoam.com/documentation/guides/v2206/api/classFoam_1_1functionObjects_1_1abort.html
+
+// surfaces
+// {
+//     type            surfaces;
+//     libs            (sampling);
+//     writeControl    writeTime; // writeTime, timeStep, runTime, adjustableRunTime, clockTime, onEnd
+//     writeInterval   1;
+
+//     surfaceFormat   vtk;
+//     fields          (alpha.water);
+
+//     // interpolationScheme cellPoint;  //<- default
+
+//     surfaces
+//     {
+//         // zNormal
+//         // {
+//         //     type        cuttingPlane;
+//         //     point       (0 0 0);
+//         //     normal      (0 0 1);
+//         //     interpolate true;
+//         // }
+
+//         freeSurface
+//         {
+//             type            isoSurface;
+//             isoField        alpha.water;
+//             isoValue        0.5;
+//             interpolate     true;
+//         }
+
+
+//     }
+// }
+// // https://www.openfoam.com/documentation/guides/latest/doc/guide-function-objects.html
 
 // ************************************************************************* //

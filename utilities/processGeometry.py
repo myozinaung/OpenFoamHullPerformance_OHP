@@ -848,16 +848,16 @@ class GeometryProcessor:
             # bbox is [[xmin, ymin, zmin], [xmax, ymax, zmax]]
 
             with open(output_file, 'w') as f:
-                f.write(f"hullXmin  {bbox[0][0]:.4f};\n")
-                f.write(f"hullXmax  {bbox[1][0]:.4f};\n")
-                f.write(f"hullYmin  {bbox[0][1]:.4f};\n")
+                f.write(f"hullXmin  {bbox[0][0]:.6f};\n")
+                f.write(f"hullXmax  {bbox[1][0]:.6f};\n")
+                f.write(f"hullYmin  {bbox[0][1]:.6f};\n")
                 # Set hullYmax based on half_domain parameter
                 ymax = 0.0 if half_domain else bbox[1][1]
-                f.write(f"hullYmax  {ymax:.4f};\n")
-                f.write(f"hullZmin  {bbox[0][2]:.4f};\n")
-                f.write(f"hullZmax  {bbox[1][2]:.4f};\n")
-                f.write(f"zWL       {draft:.4f};\n")
-                f.write(f"bottomKeelDepth  {bottom_keel_depth:.4f};\n")
+                f.write(f"hullYmax  {ymax:.6f};\n")
+                f.write(f"hullZmin  {bbox[0][2]:.6f};\n")
+                f.write(f"hullZmax  {bbox[1][2]:.6f};\n")
+                f.write(f"zWL       {draft:.6f};\n")
+                f.write(f"bottomKeelDepth  {bottom_keel_depth:.6f};\n")
 
             return True, f"Successfully wrote bounding box to {output_file}"
 
@@ -923,14 +923,16 @@ class GeometryProcessor:
             CoB = clipped_mesh.center_mass
             
             # Approximate CoG (using CoB x,y and VCG for z)
-            CoG = (CoB[0], CoB[1], VCG)
+            # CoG = (CoB[0], CoB[1], VCG)
+            CoG = (CoB[0], CoB[1], CoB[2])
+
 
             # Write results to file
             with open(output_file, "w") as f:
-                f.write(f"mass            {mass:.2f};\n")
-                f.write(f"Ixx             {Ixx:.2f};\n")
-                f.write(f"Iyy             {Iyy:.2f};\n")
-                f.write(f"Izz             {Izz:.2f};\n")
+                f.write(f"mass            {mass:.6f};\n")
+                f.write(f"Ixx             {Ixx:.6f};\n")
+                f.write(f"Iyy             {Iyy:.6f};\n")
+                f.write(f"Izz             {Izz:.6f};\n")
                 f.write(f"centreOfMass    ({CoG[0]:.6f} {CoG[1]:.6f} {CoG[2]:.6f});\n")
 
             status_message = (

@@ -21,8 +21,11 @@
 innerDistance   0.02; // should be relative to the size of model
 outerDistance   0.6;
 meshDiffusivity inverseVolume (hull); // inverseVolume, uniform, quadratic inverseDistance
-translationDamperCoeff  4000; // 8596 for DTC should be relative to the size of model
-rotationDamperCoeff     6000; // 11586 for DTC
+translationDamperCoeff  1200; //1200, 8596 for DTC should be relative to the size of model
+rotationDamperCoeff     1600; //1600, 11586 for DTC
+
+accelerationRelaxation 0.4; // smaller value for planing ships, recommended 0.9 to 1.0
+accelerationDamping 0.4; // reduce this if divergence occurs, recommended 0.9 to 1.0
 
 //*********************** TURBULENCE MODEL and WALL FUNCTIONS *********************** //
 // TURBULENCE MODEL k-omega SST (initial and boundary values, "0" dir)

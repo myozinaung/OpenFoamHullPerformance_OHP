@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+para {#include        "../ParametersConst"}
+
+dynamicFvMesh   dynamicMotionSolverFvMesh;
+
+motionSolverLibs (sixDoFRigidBodyMotion);
+
+motionSolver    sixDoFRigidBodyMotion;
+
+patches         (hull);
+innerDistance   $para.innerDistance;
+outerDistance   $para.outerDistance;
+
+centreOfMass    $para.centreOfMass;
+mass            $para.mass;
+momentOfInertia ($para.Ixx $para.Iyy $para.Izz);
+rhoInf          1;
+report          on;
+
+value           uniform (0 0 0);
+
+// diffusivity     $para/meshDiffusivity;
+
+accelerationRelaxation $para.accelerationRelaxation; // smaller value for planing ships, recommended 0.9 to 1.0
+accelerationDamping  $para.accelerationDamping; // reduce this if divergence occurs, recommended 0.9 to 1.0
+
+
+solver
+{
+    type Newmark;
+}
+
+constraints
+{
+    zAxis // free Heave, translation along z-axis
+    {
+        sixDoFRigidBodyMotionConstraint line;
+        direction     (0 0 1);
+    }
+    yPlane // free Pitch, rotation about y-axis
+    {
+        sixDoFRigidBodyMotionConstraint axis;
+        axis          (0 1 0);
+    }
+
+}
+
+restraints
+{
+    translationDamper
+    {
+        para {#include        "../ParametersConst"}
+        sixDoFRigidBodyMotionRestraint linearDamper;
+        coeff         $para.translationDamperCoeff;
+    }
+    rotationDamper
+    {
+        para {#include        "../ParametersConst"}
+        sixDoFRigidBodyMotionRestraint sphericalAngularDamper;
+        coeff         $para.rotationDamperCoeff;
+    }
+}
+
+
+// ************************************************************************* //
