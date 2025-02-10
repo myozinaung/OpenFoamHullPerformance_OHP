@@ -11,7 +11,6 @@ rm Parameters.0
 rm Parameters.1
 rm Parameters.2
 rm Parameters.3
-
 # Reset the original file with 0 files if they have been changed
 sed -i 's/$maxCo1/$maxCo0/' Parameters
 sed -i 's/$maxAlphaCo1/$maxAlphaCo0/' Parameters
